@@ -1,0 +1,17 @@
+{
+  "name": "project",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "help": "gamedev help",
+    "dev": "gamedev dev",
+    "build": "gamedev apps build --all",
+    "deploy:fly": "bash scripts/fly-deploy.sh",
+    "update:engine": "bash scripts/update-engine.sh",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "gamedev": "^0.0.8"
+  }
+}
