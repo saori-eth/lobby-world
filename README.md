@@ -72,3 +72,9 @@ Sync your local project to a remote world in real time (no per‑app deploys):
 - Notes:
   - Use for dev/staging only — it can overwrite world state.
   - For production, prefer `npm run deploy:app -- <AppName> --target <app>`.
+
+## Import .hyp files
+
+- Drop `.hyp` files in `hyp/` (kept in Git via `hyp/.gitkeep`).
+- Extract all packages into `apps/` and `assets/`:
+  - `npm run hyp:extract`
