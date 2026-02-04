@@ -40,11 +40,11 @@ while true; do
   read -rp "WORLD_ID: " WORLD_ID || true
   [[ -n "${WORLD_ID:-}" ]] && break || echo "WORLD_ID is required."
 done
+read -rp "ADMIN_CODE (optional): " ADMIN_CODE || true
 while true; do
-  read -rp "ADMIN_CODE: " ADMIN_CODE || true
-  [[ -n "${ADMIN_CODE:-}" ]] && break || echo "ADMIN_CODE is required."
+  read -rp "JWT_SECRET: " JWT_SECRET || true
+  [[ -n "${JWT_SECRET:-}" ]] && break || echo "JWT_SECRET is required."
 done
-read -rp "JWT_SECRET (optional): " JWT_SECRET || true
 
 # Ensure fly.toml exists and set app name + region
 if [[ ! -f fly.toml ]]; then
@@ -116,8 +116,8 @@ fi
 
 SECRETS_TO_SET=()
 [[ -n "${WORLD_ID:-}" ]] && SECRETS_TO_SET+=("WORLD_ID=$WORLD_ID")
-[[ -n "${ADMIN_CODE:-}" ]] && SECRETS_TO_SET+=("ADMIN_CODE=$ADMIN_CODE")
 [[ -n "${JWT_SECRET:-}" ]] && SECRETS_TO_SET+=("JWT_SECRET=$JWT_SECRET")
+[[ -n "${ADMIN_CODE:-}" ]] && SECRETS_TO_SET+=("ADMIN_CODE=$ADMIN_CODE")
 
 if (( ${#SECRETS_TO_SET[@]} > 0 )); then
   echo "Setting Fly secrets..."
@@ -128,8 +128,25 @@ else
   echo "No secrets set. You can set them later with: flyctl secrets set KEY=VALUE -a $APP_NAME"
 fi
 
-echo "Deploying engine image ghcr.io/lobby-ws/gamedev:main to Fly..."
-flyctl deploy --app "$APP_NAME" --image ghcr.io/lobby-ws/gamedev:main --ha=false
+# Determine gamedev version from package.json to tag the engine image
+GAMEDEV_VERSION=$(node - <<'NODE'
+const fs = require('fs');
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const ver = (pkg.devDependencies && pkg.devDependencies.gamedev)
+  || (pkg.dependencies && pkg.dependencies.gamedev)
+  || '';
+const clean = String(ver).trim().replace(/^[~^]/, '');
+process.stdout.write(`v${clean}`);
+NODE
+)
+if [[ -z "$GAMEDEV_VERSION" ]]; then
+  echo "Could not determine gamedev version from package.json (dependencies/devDependencies)." >&2
+  exit 1
+fi
+
+ENGINE_IMAGE="ghcr.io/lobby-ws/gamedev:$GAMEDEV_VERSION"
+echo "Deploying engine image $ENGINE_IMAGE to Fly..."
+flyctl deploy --app "$APP_NAME" --image "$ENGINE_IMAGE" --ha=false
 
 # Auto-add/update target in .lobby/targets.json
 echo "Updating .lobby/targets.json with target '$APP_NAME'..."
