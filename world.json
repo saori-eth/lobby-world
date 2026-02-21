@@ -12,16 +12,38 @@
     "ao": true
   },
   "spawn": {
-    "position": [0, 0, 0],
-    "quaternion": [0, 0, 0, 1]
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "quaternion": [
+      0,
+      0,
+      0,
+      1
+    ]
   },
   "entities": [
     {
-      "id": "ZTk1J7bHFi",
+      "id": "1M9V9d8Cfa",
       "blueprint": "$scene",
-      "position": [0, 0, 0],
-      "quaternion": [0, 0, 0, 1],
-      "scale": [1, 1, 1],
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
       "pinned": false,
       "props": {},
       "state": {}
