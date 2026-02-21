@@ -1,23 +1,10 @@
 {
-  "id": "$scene",
-  "name": "Scene",
-  "scope": "global",
-  "script": "asset://scene.js",
+  "scriptFormat": "module",
+  "image": null,
   "author": null,
   "url": null,
   "desc": null,
-  "preload": true,
-  "public": false,
-  "locked": false,
-  "frozen": false,
-  "unique": true,
-  "disabled": false,
-  "scene": true,
-  "keep": true,
-  "scriptFormat": "module",
-  "scriptEntry": "scene.js",
   "model": "assets/Model.glb",
-  "image": null,
   "props": {
     "hour": 4,
     "period": "pm",
@@ -34,5 +21,13 @@
     "fogNear": 450,
     "fogFar": 1000,
     "fogColor": "#97b4d3"
-  }
+  },
+  "preload": true,
+  "public": false,
+  "locked": false,
+  "frozen": false,
+  "unique": true,
+  "keep": true,
+  "scene": true,
+  "disabled": false
 }
