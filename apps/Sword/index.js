@@ -11,7 +11,13 @@ export default (world, app, fetch, props, setTimeout) => {
   const block = app.get('Block')
   if (block) block.active = false
 
-  if (!world.isClient) return
+  // Server: relay attack events to other apps
+  if (world.isServer) {
+    app.on('attack', (data) => {
+      app.emit('sword-attack', data)
+    })
+    return
+  }
 
   function buildSword() {
     const sword = app.create('group')
@@ -105,6 +111,11 @@ export default (world, app, fetch, props, setTimeout) => {
     const emoteUrl = props.attackEmote?.url
     if (!emoteUrl) return
     attacking = true
+    // Send attack position to server for authoritative damage
+    const pos = [sword.position.x, sword.position.y, sword.position.z]
+    app.send('attack', { position: pos })
+    // Also emit locally so NPC clients can predict the hit instantly
+    app.emit('sword-attack', { position: pos })
     world.getPlayer().applyEffect({
       emote: emoteUrl,
       duration: 1,

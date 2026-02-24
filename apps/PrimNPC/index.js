@@ -3,6 +3,8 @@ export default (world, app, fetch, props, setTimeout) => {
 
   const SEND_RATE = 0.33;
   const MAX_DISTANCE = 10;
+  const ATTACK_RANGE = 2;
+  const DAMAGE = 25;
   const num = prng(1);
 
   // Hide default block mesh
@@ -185,10 +187,14 @@ export default (world, app, fetch, props, setTimeout) => {
     legRPivot.add(legRUpper);
     torso.add(legRPivot);
 
-    root.add(torso);
+    // Body pivot at foot level — rotating its X tips the whole body forward/back
+    const bodyPivot = app.create("group");
+    bodyPivot.add(torso);
+    root.add(bodyPivot);
 
     return {
       root,
+      bodyPivot,
       headPivot,
       armLPivot,
       armRPivot,
@@ -311,15 +317,21 @@ export default (world, app, fetch, props, setTimeout) => {
 
   // --- Server logic ---
   if (world.isServer) {
+    const RESPAWN_TIME = 3;
+
     const state = app.state;
     state.name = app.config.name || "NPC";
+    state.hp = 100;
+    state.maxHp = 100;
 
     const ctrl = app.create("controller");
     ctrl.position.copy(app.position);
     world.add(ctrl);
 
     const v1 = new Vector3();
+    const attackPos = new Vector3();
     let lastSend = 0;
+    let dead = false;
     const customEmoteIndices = [2, 3, 4]; // idle, wave, dance
 
     const actions = [
@@ -380,12 +392,49 @@ export default (world, app, fetch, props, setTimeout) => {
 
     let action = getAction();
     app.on("fixedUpdate", (delta) => {
+      if (dead) return;
       const finished = action(delta);
       if (finished) action = getAction();
       lastSend += delta;
       if (lastSend > SEND_RATE) {
         lastSend = 0;
         app.send("change", [state.px, state.py, state.pz, state.ry, state.e]);
+      }
+    });
+
+    // Listen for sword attacks from any app
+    world.on("sword-attack", (data) => {
+      if (dead) return;
+      attackPos.set(data.position[0], data.position[1], data.position[2]);
+      const dist = attackPos.distanceTo(ctrl.position);
+      if (dist > ATTACK_RANGE) return;
+
+      state.hp = Math.max(0, state.hp - DAMAGE);
+      app.send("hp", { hp: state.hp, max: state.maxHp });
+
+      if (state.hp <= 0) {
+        dead = true;
+        app.send("die", {});
+        setTimeout(() => {
+          state.hp = state.maxHp;
+          ctrl.position.copy(app.position);
+          state.px = ctrl.position.x;
+          state.py = ctrl.position.y;
+          state.pz = ctrl.position.z;
+          state.ry = 0;
+          state.e = 2;
+          dead = false;
+          action = getAction();
+          app.send("respawn", {
+            px: state.px,
+            py: state.py,
+            pz: state.pz,
+            ry: state.ry,
+            e: state.e,
+            hp: state.hp,
+            max: state.maxHp,
+          });
+        }, RESPAWN_TIME * 1000);
       }
     });
 
@@ -407,7 +456,7 @@ export default (world, app, fetch, props, setTimeout) => {
     }
 
     function init(state) {
-      const { root, ...parts } = buildBody();
+      const { root, bodyPivot, ...parts } = buildBody();
       root.position.set(state.px, state.py, state.pz);
       root.rotation.y = state.ry;
 
@@ -417,20 +466,177 @@ export default (world, app, fetch, props, setTimeout) => {
 
       world.add(root);
 
+      // --- Health bar UI ---
+      const healthUI = app.create("ui", {
+        space: "world",
+        billboard: "y",
+        width: 60,
+        height: 8,
+        size: 0.01,
+        pointerEvents: false,
+      });
+      healthUI.position.y = 2.1;
+
+      const bgBar = app.create("uiview", {
+        width: 60,
+        height: 8,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        borderRadius: 4,
+        flexDirection: "row",
+      });
+
+      const fillBar = app.create("uiview", {
+        width: 60,
+        height: 8,
+        backgroundColor: "#00d26a",
+        borderRadius: 4,
+      });
+
+      bgBar.add(fillBar);
+      healthUI.add(bgBar);
+      root.add(healthUI);
+
+      // Start hidden (full health)
+      let currentHp = state.hp || 100;
+      let maxHp = state.maxHp || 100;
+      healthUI.active = currentHp < maxHp;
+
+      function updateHealthBar(hp, max) {
+        currentHp = hp;
+        maxHp = max;
+        const ratio = hp / max;
+        fillBar.width = Math.round(60 * ratio);
+        // Color: green > yellow > red
+        if (ratio > 0.5) {
+          fillBar.backgroundColor = "#00d26a";
+        } else if (ratio > 0.25) {
+          fillBar.backgroundColor = "#ffc048";
+        } else {
+          fillBar.backgroundColor = "#ff4757";
+        }
+        healthUI.active = hp < max && hp > 0;
+      }
+
+      // --- Animator + interpolation ---
       const animator = createAnimator(parts);
       animator.setEmote(state.e);
+      let isDead = false;
 
       const position = new BufferedLerpVector3(root.position, SEND_RATE * 1.2);
 
       app.on("change", ([px, py, pz, ry, e]) => {
+        if (isDead) return;
         position.push([px, py, pz]);
         root.rotation.y = ry;
         animator.setEmote(e);
       });
 
       app.on("update", (delta) => {
+        if (isDead) return;
         position.update(delta);
         animator.update(delta);
+      });
+
+      // --- Death fall-over animation ---
+      const FALL_TARGET = 90 * DEG2RAD; // tip forward 90 degrees
+      const FALL_SPEED = 3; // radians per second (~0.5s to fall)
+      // When tipped 90deg the torso center (y=1) lands at y=0, so the bottom
+      // half (~0.3m thick) clips underground. A small lift keeps it on the surface.
+      const FALL_LIFT = 0.3;
+      let falling = false;
+
+      const fallUpdate = (delta) => {
+        if (!falling) return;
+        bodyPivot.rotation.x += FALL_SPEED * delta;
+        if (bodyPivot.rotation.x >= FALL_TARGET) {
+          bodyPivot.rotation.x = FALL_TARGET;
+          bodyPivot.position.y = FALL_LIFT;
+          falling = false;
+          app.off("update", fallUpdate);
+        } else {
+          // Lift proportionally as rotation progresses
+          const t = bodyPivot.rotation.x / FALL_TARGET;
+          bodyPivot.position.y = t * FALL_LIFT;
+        }
+      };
+
+      // --- Blood splatter particles ---
+      function spawnBlood() {
+        const blood = app.create("particles", {
+          shape: ["sphere", 0.3, 1],
+          rate: 0,
+          bursts: [{ time: 0, count: 12 }],
+          duration: 0.1,
+          loop: false,
+          life: "0.3~0.6",
+          speed: "1~3",
+          size: "0.04~0.08",
+          color: "#8b0000",
+          force: new Vector3(0, -6, 0),
+          direction: 1,
+          blending: "normal",
+          max: 20,
+        });
+        blood.position.set(
+          root.position.x,
+          root.position.y + 1,
+          root.position.z
+        );
+        world.add(blood);
+        setTimeout(() => {
+          world.remove(blood);
+        }, 1000);
+      }
+
+      // --- Client-side hit prediction ---
+      const hitPos = new Vector3();
+      const npcPos = new Vector3();
+      let predictedHp = currentHp;
+
+      world.on("sword-attack", (data) => {
+        if (isDead) return;
+        hitPos.set(data.position[0], data.position[1], data.position[2]);
+        npcPos.copy(root.position);
+        if (hitPos.distanceTo(npcPos) > ATTACK_RANGE) return;
+
+        // Optimistic prediction
+        predictedHp = Math.max(0, predictedHp - DAMAGE);
+        updateHealthBar(predictedHp, maxHp);
+        spawnBlood();
+      });
+
+      // --- Server reconciliation ---
+      app.on("hp", ({ hp, max }) => {
+        predictedHp = hp;
+        updateHealthBar(hp, max);
+      });
+
+      app.on("die", () => {
+        isDead = true;
+        predictedHp = 0;
+        healthUI.active = false;
+        nametag.active = false;
+        // Reset pose before falling so limbs are neutral
+        animator.setEmote(2);
+        falling = true;
+        app.on("update", fallUpdate);
+      });
+
+      app.on("respawn", (data) => {
+        // Stop fall animation if still running
+        falling = false;
+        app.off("update", fallUpdate);
+        // Reset body pivot
+        bodyPivot.rotation.x = 0;
+        bodyPivot.position.y = 0;
+        isDead = false;
+        predictedHp = data.hp;
+        root.position.set(data.px, data.py, data.pz);
+        root.rotation.y = data.ry;
+        position.push([data.px, data.py, data.pz]);
+        animator.setEmote(data.e);
+        nametag.active = true;
+        updateHealthBar(data.hp, data.max);
       });
     }
   }
