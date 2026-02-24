@@ -1,4 +1,4 @@
-import { buildBody } from "@shared/buildBody.js";
+import { buildBody } from "@shared/humanoidNPC/index.js";
 
 export function buildNPC(app, { scale = 1, colors = {} } = {}) {
   return buildBody(app, {

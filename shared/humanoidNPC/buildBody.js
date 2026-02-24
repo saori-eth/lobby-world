@@ -2,8 +2,8 @@
 // Default meshes are slim bone-outline prims — a minimal stick-figure silhouette.
 // Apps can override by passing a custom `meshes` callback.
 
-import { createArmature } from "@shared/armature.js";
-import { createAnimator } from "@shared/animator.js";
+import { createArmature } from "./armature.js";
+import { createAnimator } from "./animator.js";
 
 // Default bone-outline mesh definitions: [width, height, depth, offsetY]
 // Proportions trace each bone segment with thin boxes

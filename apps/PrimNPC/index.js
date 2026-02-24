@@ -1,7 +1,7 @@
 import { buildNPC } from "./buildBody.js";
 import { spawnBlood } from "@shared/bloodSpatter.js";
 import { createHealthBar } from "@shared/healthBar.js";
-import { createBoneExplosion } from "@shared/boneExplosion.js";
+import { createBoneExplosion } from "@shared/humanoidNPC/index.js";
 import { spawnExplosion } from "@shared/explosion.js";
 
 export default (world, app, fetch, props, setTimeout) => {
