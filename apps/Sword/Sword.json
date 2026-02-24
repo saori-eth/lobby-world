@@ -1,0 +1,22 @@
+{
+  "id": "Sword",
+  "uid": "47e39f1d-8fb3-499e-b2e3-5373f9c9da3b",
+  "name": "Sword",
+  "scope": "Sword",
+  "script": "asset://1b14b818ec45460561429a53a1d251272d99e9c12b22aeda2289d2ba12a699b6.js",
+  "createdAt": "2026-02-24T02:47:24.697Z",
+  "preload": false,
+  "public": false,
+  "locked": false,
+  "frozen": false,
+  "unique": false,
+  "disabled": false,
+  "scene": false,
+  "keep": true,
+  "scriptFormat": "module",
+  "model": "assets/Model.glb",
+  "image": {
+    "url": "assets/Model.png"
+  },
+  "props": {}
+}

@@ -70,6 +70,35 @@
       "pinned": false,
       "props": {},
       "state": {}
+    },
+    {
+      "id": "FrvjkURJTj",
+      "blueprint": "Sword",
+      "position": [
+        -10.986022207838726,
+        0,
+        -2.3382180147260185
+      ],
+      "quaternion": [
+        0,
+        -0.49999999999999994,
+        0,
+        0.8660254037844387
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {
+        "attackEmote": {
+          "type": "emote",
+          "name": "Great Sword Downward Slash.glb",
+          "url": "assets/Great Sword Downward Slash.glb"
+        }
+      },
+      "state": {}
     }
   ]
 }
