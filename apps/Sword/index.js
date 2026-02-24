@@ -96,9 +96,9 @@ export default (world, app, fetch, props, setTimeout) => {
       spread: 0,
       layers: [
         // Blade up
-        { shape: "line", length: 8, gap: 3, angle: 0, thickness: 1.5 },
+        { shape: "line", length: 5, gap: 3, angle: 0, thickness: 1.5 },
         // Blade down
-        { shape: "line", length: 8, gap: 3, angle: 180, thickness: 1.5 },
+        { shape: "line", length: 5, gap: 3, angle: 180, thickness: 1.5 },
         // Guard left
         {
           shape: "line",
