@@ -21,7 +21,7 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     bone = "rightHand",
     offsetRotation = [-90, 0, 0],
     offsetPosition = [0.1, 0, 0],
-    hitbox: hitboxConfig = { size: [0.4, 1.0, 0.4], offsetY: 0.7 },
+    hitbox: hitboxConfig = { radius: 0.35, offsetY: 0.7 },
   } = options;
 
   const {
@@ -73,9 +73,9 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     // Add trigger hitbox to weapon for collision-based hit detection
     const isLocal = player.id === world.getPlayer()?.id;
     if (isLocal) {
-      const hitBox = app.create("prim", {
-        type: "box",
-        size: hitboxConfig.size,
+      const hitSphere = app.create("prim", {
+        type: "sphere",
+        size: [hitboxConfig.radius],
         position: [0, hitboxConfig.offsetY, 0],
         opacity: 0,
         physics: "kinematic",
@@ -94,7 +94,7 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
           app.emit(eventName, { npcAppId, playerId: localPlayer.id });
         },
       });
-      weapon.add(hitBox);
+      weapon.add(hitSphere);
     }
 
     world.add(weapon);

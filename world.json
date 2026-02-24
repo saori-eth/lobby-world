@@ -99,13 +99,14 @@
       "pinned": false,
       "props": {},
       "state": {
+        "instanceId": "xWT2QVegQf",
         "name": "NPC",
         "hp": 100,
         "maxHp": 100,
-        "px": -19.709467339770335,
-        "py": 0.030000003372468553,
-        "pz": -2.9860604333364478,
-        "ry": 5.585053606381854,
+        "px": -35.224430372448104,
+        "py": 0.25000020742416385,
+        "pz": -10.459916283283967,
+        "ry": -2.937740707763317,
         "e": 0,
         "ready": true
       }
@@ -131,7 +132,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "BopiIGvSK2",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -42.25725656501236,
+        "py": 0.24999975054488743,
+        "pz": 0.1469314416226548,
+        "ry": -2.248659026676034,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "KUxv3HAnEY",
@@ -154,7 +166,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "dLCWzDykUJ",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -23.192137018840377,
+        "py": 0.030000298023223904,
+        "pz": 16.84855654224812,
+        "ry": -2.78782879494118,
+        "e": 5,
+        "ready": true
+      }
     },
     {
       "id": "KyHwuatu0M",
@@ -200,7 +223,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "xvRk9vYcHr",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -32.50482102405785,
+        "py": 0.2499998350408159,
+        "pz": -7.071529278148226,
+        "ry": -2.937740707763317,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "3bXPkR7gxY",
@@ -223,7 +257,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "eZM0iBB3uQ",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -32.451692127607274,
+        "py": 0.24999988037409349,
+        "pz": -7.189816944348543,
+        "ry": -2.937740707763317,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "nfX4MOxCA6",
@@ -246,7 +291,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "RwXbmfx6Yq",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -36.32153305399697,
+        "py": 0.25000011920928955,
+        "pz": 1.3280369490385056,
+        "ry": -3.1870031240355456,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "xlyJubgmQs",
@@ -269,7 +325,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "facpmajZ90",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -36.289559476410155,
+        "py": 0.25000002850708425,
+        "pz": 0.9809763912026952,
+        "ry": -3.1931056407803466,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "1blsvH3ggP",
@@ -361,7 +428,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "NElyGMXWMv",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -36.32989454166912,
+        "py": 0.24999992417340255,
+        "pz": 1.0013357763447335,
+        "ry": -3.1946772525757727,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "F6aGlLpIAk",
@@ -430,7 +508,18 @@
       ],
       "pinned": false,
       "props": {},
-      "state": {}
+      "state": {
+        "instanceId": "SgKjirKpkW",
+        "name": "NPC",
+        "hp": 100,
+        "maxHp": 100,
+        "px": -36.21287180162423,
+        "py": 0.2500000028034055,
+        "pz": 0.904944927605488,
+        "ry": -3.180500479872959,
+        "e": 0,
+        "ready": true
+      }
     },
     {
       "id": "iLKGDl18qf",
