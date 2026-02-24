@@ -3,7 +3,7 @@
   "uid": "b13de0d6-1af1-41a8-880a-1441c0311e47",
   "name": "Raid",
   "scope": "Raid",
-  "script": "asset://30ff7367044f21e50b7383eff6d3ebb572f44320b09d568b0dd23ed3cdbf71e8.js",
+  "script": "asset://74aeb4a06a9d2898be71ec8670bde0f5abba97ec221cbbe42c63320edb136b18.js",
   "createdAt": "2026-02-24T06:35:30.080Z",
   "preload": false,
   "public": false,

@@ -40,7 +40,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     state.hp = hp;
     state.maxHp = maxHp;
 
-    const raid = createRaidBridge(world);
+    const raid = createRaidBridge(world, app);
 
     const ctrl = app.create("controller");
     ctrl.position.copy(app.position);

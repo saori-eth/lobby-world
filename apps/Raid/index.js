@@ -11,11 +11,13 @@ export default (world, app, fetch, props, setTimeout) => {
 
     // Respond to pings so NPC bridges know we're active
     world.on(EVENTS.PING, () => {
-      world.emit(EVENTS.PONG, {});
+      console.log("[Raid] received PING, sending PONG");
+      app.emit(EVENTS.PONG, {});
     });
 
     // Announce presence for any NPCs that initialized before us
-    world.emit(EVENTS.PONG, {});
+    console.log("[Raid] announcing PONG on init");
+    app.emit(EVENTS.PONG, {});
 
     // Track player HP on enter/leave
     world.on("enter", (player) => {
@@ -28,6 +30,7 @@ export default (world, app, fetch, props, setTimeout) => {
 
     // Broker NPC → Player damage
     world.on(EVENTS.NPC_ATTACK, (data) => {
+      console.log("[Raid] received NPC_ATTACK", JSON.stringify(data));
       const { npcId, targetPlayerId, damage } = data;
       const player = world.getPlayer(targetPlayerId);
       if (!player) return;
@@ -39,8 +42,7 @@ export default (world, app, fetch, props, setTimeout) => {
       const pState = app.state.players[targetPlayerId];
       pState.hp = Math.max(0, pState.hp - damage);
 
-      player.damage(damage);
-
+      console.log("[Raid] sending player-damaged hp=" + pState.hp);
       app.send("player-damaged", {
         playerId: targetPlayerId,
         hp: pState.hp,
@@ -48,14 +50,14 @@ export default (world, app, fetch, props, setTimeout) => {
         damage,
       });
 
-      world.emit(EVENTS.PLAYER_DAMAGED, {
+      app.emit(EVENTS.PLAYER_DAMAGED, {
         playerId: targetPlayerId,
         damage,
         sourceId: npcId,
       });
 
       if (pState.hp <= 0) {
-        world.emit("raid:player-died", { playerId: targetPlayerId });
+        app.emit("raid:player-died", { playerId: targetPlayerId });
         // Reset HP after death
         pState.hp = maxHp;
       }
@@ -76,6 +78,28 @@ export default (world, app, fetch, props, setTimeout) => {
       }
     });
 
+    // Health recovery: +5 HP per second for all players not at full HP
+    const regenRate = 5;
+    const regenInterval = 1;
+    let regenTimer = 0;
+    app.on("fixedUpdate", (delta) => {
+      regenTimer += delta;
+      if (regenTimer < regenInterval) return;
+      regenTimer -= regenInterval;
+      for (const id in app.state.players) {
+        const pState = app.state.players[id];
+        if (pState.hp > 0 && pState.hp < maxHp) {
+          pState.hp = Math.min(maxHp, pState.hp + regenRate);
+          app.send("player-damaged", {
+            playerId: id,
+            hp: pState.hp,
+            maxHp,
+            damage: 0,
+          });
+        }
+      }
+    });
+
     app.send("init", app.state);
   }
 
@@ -93,7 +117,8 @@ export default (world, app, fetch, props, setTimeout) => {
       });
 
       app.on("player-damaged", (data) => {
-        const localPlayer = world.getLocalPlayer();
+        console.log("[Raid][client] player-damaged", JSON.stringify(data));
+        const localPlayer = world.getPlayer();
         if (!localPlayer || data.playerId !== localPlayer.id) return;
         hud.update(data.hp, data.maxHp);
       });

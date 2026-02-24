@@ -12,18 +12,20 @@ export const EVENTS = {
 
 /**
  * Creates a bridge for NPCs to communicate with the Raid app.
- * If no Raid app responds to a ping, falls back to direct player.damage().
+ * Uses app.emit for cross-app events and world.on to listen.
  */
-export function createRaidBridge(world) {
+export function createRaidBridge(world, app) {
   let connected = false;
 
   // Listen for pong from Raid app
   world.on(EVENTS.PONG, () => {
+    console.log("[RaidBridge] received PONG — connected!");
     connected = true;
   });
 
   // Ping to see if Raid app is present
-  world.emit(EVENTS.PING, {});
+  console.log("[RaidBridge] sending PING");
+  app.emit(EVENTS.PING, {});
 
   return {
     /**
@@ -31,14 +33,13 @@ export function createRaidBridge(world) {
      * Otherwise falls back to direct damage.
      */
     attackPlayer(npcId, targetPlayer, damage) {
+      console.log("[RaidBridge] attackPlayer connected=" + connected, npcId, targetPlayer.id, damage);
       if (connected) {
-        world.emit(EVENTS.NPC_ATTACK, {
+        app.emit(EVENTS.NPC_ATTACK, {
           npcId,
           targetPlayerId: targetPlayer.id,
           damage,
         });
-      } else {
-        targetPlayer.damage(damage);
       }
     },
 
@@ -47,7 +48,7 @@ export function createRaidBridge(world) {
      */
     reportHit(npcId, attackerId, damage, dead) {
       if (connected) {
-        world.emit(EVENTS.NPC_HIT, {
+        app.emit(EVENTS.NPC_HIT, {
           npcId,
           attackerId,
           damage,
