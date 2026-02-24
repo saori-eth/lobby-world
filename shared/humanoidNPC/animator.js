@@ -3,8 +3,9 @@ import { run } from "./animations/run.js";
 import { idle } from "./animations/idle.js";
 import { wave } from "./animations/wave.js";
 import { dance } from "./animations/dance.js";
+import { attack } from "./animations/attack.js";
 
-const emoteMap = ["walk", "run", "idle", "wave", "dance"];
+const emoteMap = ["walk", "run", "idle", "wave", "dance", "attack"];
 
 export function createAnimator(armature) {
   const { bones, resetToRest } = armature;
@@ -15,6 +16,7 @@ export function createAnimator(armature) {
     idle: idle(bones),
     wave: wave(bones),
     dance: dance(bones),
+    attack: attack(bones),
   };
 
   let time = 0;

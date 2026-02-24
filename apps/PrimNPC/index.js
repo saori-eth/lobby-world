@@ -49,6 +49,36 @@ const NPC_MESHES = {
     size: [0.18, 0.26, 0.18],
     position: [0, -0.13, 0],
     color: "#f0c8a0",
+    children: [
+      // Sword grip
+      {
+        size: [0.06, 0.22, 0.06],
+        position: [0, -0.24, 0],
+        color: "#553311",
+      },
+      // Sword guard
+      {
+        size: [0.18, 0.03, 0.06],
+        position: [0, -0.14, 0],
+        color: "#888888",
+      },
+      // Sword blade
+      {
+        size: [0.06, 0.45, 0.02],
+        position: [0, -0.5, 0],
+        color: "#cccccc",
+        emissive: "#cccccc",
+        emissiveIntensity: 1,
+      },
+      // Sword tip
+      {
+        size: [0.06, 0.06, 0.02],
+        position: [0, -0.74, 0],
+        color: "#dddddd",
+        emissive: "#dddddd",
+        emissiveIntensity: 1,
+      },
+    ],
   },
   upperLeg_L: {
     size: [0.2, 0.28, 0.2],
@@ -83,7 +113,10 @@ const NPC_MESHES = {
 };
 
 export default (world, app, fetch, props, setTimeout) => {
-  app.configure([{ key: "name", type: "text", label: "Name", initial: "NPC" }]);
+  app.configure([
+    { key: "name", type: "text", label: "Name", initial: "NPC" },
+    { key: "aggro", type: "switch", label: "Aggro", initial: true },
+  ]);
 
   const block = app.get("Block");
   if (block) block.active = false;
@@ -100,5 +133,11 @@ export default (world, app, fetch, props, setTimeout) => {
     maxDistance: 10,
     sendRate: 0.33,
     seed: 1,
+    aggro: app.config.aggro !== false,
+    attackDamage: 10,
+    attackCooldown: 1.5,
+    chaseSpeed: 3.5,
+    aggroRange: 15,
+    aggroAttackRange: 1.8,
   });
 };

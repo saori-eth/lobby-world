@@ -18,6 +18,12 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     maxDistance = 10,
     sendRate = 0.33,
     seed = 1,
+    aggro = false,
+    attackDamage = 10,
+    attackCooldown = 1.5,
+    chaseSpeed = 3.5,
+    aggroRange = 15,
+    aggroAttackRange = 1.8,
     onDeath,
     onRespawn,
     onClientInit,
@@ -98,11 +104,91 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       return actions[num(0, actions.length - 1)]();
     }
 
+    // --- Aggro chase/attack state ---
+    const chaseDir = new Vector3();
+    let attackTimer = 0;
+
+    function findNearestPlayer() {
+      const players = world.getPlayers();
+      let nearest = null;
+      let nearestDist = Infinity;
+      for (const player of players) {
+        const dx = player.position.x - ctrl.position.x;
+        const dz = player.position.z - ctrl.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = player;
+        }
+      }
+      return { player: nearest, distance: nearestDist };
+    }
+
+    function aggroUpdate(delta) {
+      attackTimer = Math.max(0, attackTimer - delta);
+
+      const { player: target, distance } = findNearestPlayer();
+      if (!target) {
+        state.e = 2; // idle
+        return;
+      }
+
+      // Leash: if target is too far from spawn, fall back to wandering
+      const spawnDist = app.position.distanceTo(ctrl.position);
+      if (distance > aggroRange || spawnDist > maxDistance) {
+        // Return to spawn area using random wander action
+        return true; // signal to fall back to wander
+      }
+
+      // Face target
+      const dx = target.position.x - ctrl.position.x;
+      const dz = target.position.z - ctrl.position.z;
+      state.ry = Math.atan2(-dx, -dz);
+
+      if (distance <= aggroAttackRange) {
+        // Attack
+        state.e = 5; // attack emote
+        if (attackTimer <= 0) {
+          target.damage(attackDamage);
+          attackTimer = attackCooldown;
+          app.send("npc-attack", {});
+        }
+      } else {
+        // Chase
+        chaseDir.set(dx, 0, dz).normalize();
+        v1.copy(chaseDir).multiplyScalar(delta * chaseSpeed);
+        v1.y = -9.81;
+        ctrl.move(v1);
+        state.px = ctrl.position.x;
+        state.py = ctrl.position.y;
+        state.pz = ctrl.position.z;
+        state.e = 1; // run
+      }
+      return false;
+    }
+
     let action = getAction();
+    let wanderFallback = false;
     app.on("fixedUpdate", (delta) => {
       if (dead) return;
-      const finished = action(delta);
-      if (finished) action = getAction();
+
+      if (aggro && !wanderFallback) {
+        const shouldWander = aggroUpdate(delta);
+        if (shouldWander) {
+          wanderFallback = true;
+          action = getAction();
+        }
+      } else if (aggro && wanderFallback) {
+        // Wander back, then re-check aggro
+        const finished = action(delta);
+        if (finished) {
+          wanderFallback = false;
+        }
+      } else {
+        const finished = action(delta);
+        if (finished) action = getAction();
+      }
+
       lastSend += delta;
       if (lastSend > sendRate) {
         lastSend = 0;
@@ -198,8 +284,22 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         animator.setEmote(e);
       });
 
+      // --- Client-side NPC attack animation ---
+      let attackAnimTimer = 0;
+      app.on("npc-attack", () => {
+        if (isDead) return;
+        animator.setEmote(5); // attack
+        attackAnimTimer = 0.5;
+      });
+
       app.on("update", (delta) => {
         if (isDead) return;
+        if (attackAnimTimer > 0) {
+          attackAnimTimer -= delta;
+          if (attackAnimTimer <= 0) {
+            animator.setEmote(2); // back to idle
+          }
+        }
         position.update(delta);
         animator.update(delta);
       });
