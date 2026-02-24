@@ -4,7 +4,7 @@ import { spawnBlood } from "../bloodSpatter.js";
 import { createHealthBar } from "../ui/healthBar.js";
 import { createCombatText } from "../ui/combatText.js";
 import { spawnExplosion } from "../explosion.js";
-import { createRaidBridge } from "../gametype/raid.js";
+import { WEAPON_ATTACK, NPC_DAMAGE, NPC_HIT, NPC_ATTACK_PLAYER } from "../gametype/raidEvents.js";
 
 export function createNPC(world, app, props, setTimeout, options = {}) {
   const {
@@ -14,7 +14,6 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     hp = 100,
     maxHp = 100,
     respawnTime = 20,
-    damageEvent = "sword-attack",
     attackRange = 2,
     damage = 25,
     maxDistance = 10,
@@ -39,8 +38,6 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     state.name = name;
     state.hp = hp;
     state.maxHp = maxHp;
-
-    const raid = createRaidBridge(world, app);
 
     const ctrl = app.create("controller");
     ctrl.position.copy(app.position);
@@ -153,7 +150,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         // Attack
         state.e = 5; // attack emote
         if (attackTimer <= 0) {
-          raid.attackPlayer(app.id, target, attackDamage);
+          app.emit(NPC_ATTACK_PLAYER, { npcId: app.id, targetPlayerId: target.id, damage: attackDamage });
           attackTimer = attackCooldown;
           app.send("npc-attack", {});
         }
@@ -201,7 +198,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     });
 
     // Listen for damage events
-    world.on(damageEvent, (data) => {
+    world.on(NPC_DAMAGE, (data) => {
       if (dead) return;
       attackPos.set(data.position[0], data.position[1], data.position[2]);
       const dist = attackPos.distanceTo(ctrl.position);
@@ -211,7 +208,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       app.send("hp", { hp: state.hp, max: state.maxHp });
 
       const isDead = state.hp <= 0;
-      raid.reportHit(app.id, data.playerId, damage, isDead);
+      app.emit(NPC_HIT, { npcId: app.id, attackerId: data.playerId, damage, dead: isDead });
 
       if (isDead) {
         dead = true;
@@ -319,7 +316,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       const npcPos = new Vector3();
       let predictedHp = currentHp;
 
-      world.on(damageEvent, (data) => {
+      world.on(WEAPON_ATTACK, (data) => {
         if (isDead) return;
         hitPos.set(data.position[0], data.position[1], data.position[2]);
         npcPos.copy(root.position);

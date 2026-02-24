@@ -1,3 +1,5 @@
+import { WEAPON_ATTACK } from "../gametype/raidEvents.js";
+
 /**
  * Shared melee weapon factory.
  *
@@ -23,7 +25,7 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
 
   const {
     button = "mouseLeft",
-    eventName = "sword-attack",
+    eventName = WEAPON_ATTACK,
     networkEvent = "attack",
     emoteKey = "attackEmote",
     duration = 1,

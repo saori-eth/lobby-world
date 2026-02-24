@@ -127,7 +127,6 @@ export default (world, app, fetch, props, setTimeout) => {
     hp: 100,
     maxHp: 100,
     respawnTime: 20,
-    damageEvent: "sword-attack",
     attackRange: 2,
     damage: 25,
     maxDistance: 10,

@@ -1,65 +1,12 @@
 import { createPlayerHUD } from "@shared/ui/playerHUD.js";
+import { WEAPON_ATTACK, NPC_DAMAGE, NPC_HIT, NPC_ATTACK_PLAYER, RAID_PLAYER_DAMAGED, RAID_PLAYER_DIED } from "./raidEvents.js";
 
 /**
- * Raid gametype — event constants, NPC bridge helper, and app logic.
+ * Raid gametype — app logic for brokering NPC↔player damage and tracking stats.
+ *
+ * NPCs emit generic events ("npc:attack-player", "npc:hit") via app.emit.
+ * This module listens for them via world.on and handles player HP, stats, and HUD.
  */
-
-export const EVENTS = {
-  NPC_ATTACK: "raid:npc-attack",
-  PLAYER_DAMAGED: "raid:player-damaged",
-  NPC_HIT: "raid:npc-hit",
-  PING: "raid:ping",
-  PONG: "raid:pong",
-};
-
-/**
- * Creates a bridge for NPCs to communicate with the Raid app.
- * Uses app.emit for cross-app events and world.on to listen.
- */
-export function createRaidBridge(world, app) {
-  let connected = false;
-
-  // Listen for pong from Raid app
-  world.on(EVENTS.PONG, () => {
-    console.log("[RaidBridge] received PONG — connected!");
-    connected = true;
-  });
-
-  // Ping to see if Raid app is present
-  console.log("[RaidBridge] sending PING");
-  app.emit(EVENTS.PING, {});
-
-  return {
-    /**
-     * Request damage on a player. If Raid app is active, emits intent event.
-     * Otherwise falls back to direct damage.
-     */
-    attackPlayer(npcId, targetPlayer, damage) {
-      console.log("[RaidBridge] attackPlayer connected=" + connected, npcId, targetPlayer.id, damage);
-      if (connected) {
-        app.emit(EVENTS.NPC_ATTACK, {
-          npcId,
-          targetPlayerId: targetPlayer.id,
-          damage,
-        });
-      }
-    },
-
-    /**
-     * Report that an NPC was hit by a player (for stat tracking).
-     */
-    reportHit(npcId, attackerId, damage, dead) {
-      if (connected) {
-        app.emit(EVENTS.NPC_HIT, {
-          npcId,
-          attackerId,
-          damage,
-          dead,
-        });
-      }
-    },
-  };
-}
 
 /**
  * Sets up all Raid app server + client logic.
@@ -73,16 +20,6 @@ export function createRaidApp(world, app, opts = {}) {
     app.state.players = {};
     app.state.ready = true;
 
-    // Respond to pings so NPC bridges know we're active
-    world.on(EVENTS.PING, () => {
-      console.log("[Raid] received PING, sending PONG");
-      app.emit(EVENTS.PONG, {});
-    });
-
-    // Announce presence for any NPCs that initialized before us
-    console.log("[Raid] announcing PONG on init");
-    app.emit(EVENTS.PONG, {});
-
     // Track player HP on enter/leave
     world.on("enter", (player) => {
       app.state.players[player.id] = { hp: maxHp };
@@ -92,9 +29,14 @@ export function createRaidApp(world, app, opts = {}) {
       delete app.state.players[player.id];
     });
 
+    // Broker Weapon → NPC damage (pass-through, can add modifiers later)
+    world.on(WEAPON_ATTACK, (data) => {
+      app.emit(NPC_DAMAGE, data);
+    });
+
     // Broker NPC → Player damage
-    world.on(EVENTS.NPC_ATTACK, (data) => {
-      console.log("[Raid] received NPC_ATTACK", JSON.stringify(data));
+    world.on(NPC_ATTACK_PLAYER, (data) => {
+      console.log("[Raid] received npc:attack-player", JSON.stringify(data));
       const { npcId, targetPlayerId, damage } = data;
       const player = world.getPlayer(targetPlayerId);
       if (!player) return;
@@ -114,21 +56,21 @@ export function createRaidApp(world, app, opts = {}) {
         damage,
       });
 
-      app.emit(EVENTS.PLAYER_DAMAGED, {
+      app.emit(RAID_PLAYER_DAMAGED, {
         playerId: targetPlayerId,
         damage,
         sourceId: npcId,
       });
 
       if (pState.hp <= 0) {
-        app.emit("raid:player-died", { playerId: targetPlayerId });
+        app.emit(RAID_PLAYER_DIED, { playerId: targetPlayerId });
         // Reset HP after death
         pState.hp = maxHp;
       }
     });
 
     // Track NPC hit stats
-    world.on(EVENTS.NPC_HIT, (data) => {
+    world.on(NPC_HIT, (data) => {
       const { attackerId, damage, dead } = data;
       if (!attackerId) return;
 

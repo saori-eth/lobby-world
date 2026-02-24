@@ -89,7 +89,6 @@ export default (world, app, fetch, props, setTimeout) => {
 
     attack: {
       button: "mouseLeft",
-      eventName: "sword-attack",
       networkEvent: "attack",
       emoteKey: "attackEmote",
       duration: 1,
