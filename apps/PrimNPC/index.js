@@ -138,5 +138,6 @@ export default (world, app, fetch, props, setTimeout) => {
     chaseSpeed: 3.5,
     aggroRange: 15,
     aggroAttackRange: 1.8,
+    hitbox: "box",
   });
 };

@@ -25,6 +25,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     chaseSpeed = 3.5,
     aggroRange = 15,
     aggroAttackRange = 1.8,
+    hitbox = "bones",
     onDeath,
     onRespawn,
     onClientInit,
@@ -265,11 +266,25 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
 
     function init(state) {
       const instanceId = state.instanceId;
-      const buildOpts = { scale, npcId: instanceId };
+      const useBoneHitbox = hitbox === "bones";
+      const buildOpts = { scale, npcId: useBoneHitbox ? instanceId : undefined };
       if (meshesOption) buildOpts.meshes = meshesOption;
       const { root, armature, animator, meshes } = buildBody(app, buildOpts);
       root.position.set(state.px, state.py, state.pz);
       root.rotation.y = state.ry;
+
+      let hitboxNode = null;
+      if (!useBoneHitbox) {
+        hitboxNode = app.create("prim", {
+          type: "box",
+          size: [0.6 * scale, 1.7 * scale, 0.4 * scale],
+          position: [0, 0.85 * scale, 0],
+          opacity: 0,
+          physics: "kinematic",
+          tag: `npc:${instanceId}`,
+        });
+        root.add(hitboxNode);
+      }
 
       const nametag = app.create("nametag", { label: state.name });
       nametag.position.y = 1.9;
@@ -338,6 +353,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         // Predict death instantly
         if (predictedHp <= 0) {
           isDead = true;
+          if (hitboxNode) hitboxNode.active = false;
           spawnExplosion(app, world, root.position, setTimeout);
           boneExplosion.explode(root.position, meshes);
           root.active = false;
@@ -350,6 +366,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         healthBar.update(newHp, max);
         // Server says still alive — undo predicted death
         if (newHp > 0 && isDead) {
+          if (hitboxNode) hitboxNode.active = true;
           boneExplosion.reset(armature, meshes);
           root.active = true;
           isDead = false;
@@ -359,6 +376,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       app.on("die", () => {
         if (isDead) return; // already predicted
         isDead = true;
+        if (hitboxNode) hitboxNode.active = false;
         predictedHp = 0;
         spawnExplosion(app, world, root.position, setTimeout);
         boneExplosion.explode(root.position, meshes);
@@ -366,6 +384,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       });
 
       app.on("respawn", (data) => {
+        if (hitboxNode) hitboxNode.active = true;
         boneExplosion.reset(armature, meshes);
         root.active = true;
         isDead = false;
