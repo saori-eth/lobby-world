@@ -500,6 +500,29 @@
       "pinned": false,
       "props": {},
       "state": {}
+    },
+    {
+      "id": "gRzI7pOn6q",
+      "blueprint": "Raid",
+      "position": [
+        -2.5156158185818804,
+        0.25,
+        13.13661402015139
+      ],
+      "quaternion": [
+        0,
+        0.3826834323650898,
+        0,
+        0.9238795325112867
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
     }
   ]
 }

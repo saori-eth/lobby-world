@@ -3,6 +3,7 @@ import { createBoneExplosion } from "./boneExplosion.js";
 import { spawnBlood } from "../bloodSpatter.js";
 import { createHealthBar } from "../healthBar.js";
 import { spawnExplosion } from "../explosion.js";
+import { createRaidBridge } from "../gametype/raid.js";
 
 export function createNPC(world, app, props, setTimeout, options = {}) {
   const {
@@ -37,6 +38,8 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     state.name = name;
     state.hp = hp;
     state.maxHp = maxHp;
+
+    const raid = createRaidBridge(world);
 
     const ctrl = app.create("controller");
     ctrl.position.copy(app.position);
@@ -149,7 +152,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         // Attack
         state.e = 5; // attack emote
         if (attackTimer <= 0) {
-          target.damage(attackDamage);
+          raid.attackPlayer(app.id, target, attackDamage);
           attackTimer = attackCooldown;
           app.send("npc-attack", {});
         }
@@ -206,7 +209,10 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       state.hp = Math.max(0, state.hp - damage);
       app.send("hp", { hp: state.hp, max: state.maxHp });
 
-      if (state.hp <= 0) {
+      const isDead = state.hp <= 0;
+      raid.reportHit(app.id, data.playerId, damage, isDead);
+
+      if (isDead) {
         dead = true;
         app.send("die", {});
         if (onDeath) onDeath(state);

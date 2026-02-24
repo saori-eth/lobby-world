@@ -158,8 +158,8 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
           localPlayer.position.z,
         ];
 
-    app.send(networkEvent, { position: pos });
-    app.emit(eventName, { position: pos });
+    app.send(networkEvent, { position: pos, playerId: localPlayer.id });
+    app.emit(eventName, { position: pos, playerId: localPlayer.id });
 
     setSpread(spreadKick);
     app.on("update", spreadDecay);
