@@ -49,35 +49,12 @@
       "state": {}
     },
     {
-      "id": "jDaoaLWMks",
-      "blueprint": "PrimNPC",
-      "position": [
-        -18.895066395833677,
-        0,
-        -12.12486902919388
-      ],
-      "quaternion": [
-        0,
-        0.9396926207859083,
-        0,
-        0.3420201433256688
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "pinned": false,
-      "props": {},
-      "state": {}
-    },
-    {
       "id": "FrvjkURJTj",
       "blueprint": "Sword",
       "position": [
-        -10.986022207838726,
+        -20.138512385734458,
         0,
-        -2.3382180147260185
+        -8.30668423590413
       ],
       "quaternion": [
         0,
@@ -98,6 +75,29 @@
           "url": "assets/Great Sword Downward Slash.glb"
         }
       },
+      "state": {}
+    },
+    {
+      "id": "jDaoaLWMks",
+      "blueprint": "PrimNPC",
+      "position": [
+        -20.89070912010027,
+        0,
+        -8.620952670471226
+      ],
+      "quaternion": [
+        0,
+        0.9396926207859083,
+        0,
+        0.3420201433256688
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
       "state": {}
     }
   ]

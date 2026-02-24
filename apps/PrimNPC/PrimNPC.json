@@ -1,9 +1,9 @@
 {
   "id": "PrimNPC",
-  "uid": "dbc97d22-2118-422b-b67d-61dbe822604d",
+  "uid": "147f7c18-76ce-4ae7-9def-84133901b17c",
   "name": "PrimNPC",
   "scope": "PrimNPC",
-  "script": "asset://2f604bb79776504506b03875854b558f82d0d977d6c2801c6d59bc65b1091326.js",
+  "script": "asset://399c659583ae405f1ef9904e3d3bc2e5ac06fe05246ab43455a2e03111615f51.js",
   "createdAt": "2026-02-24T02:27:19.881Z",
   "preload": false,
   "public": false,
@@ -18,5 +18,7 @@
   "image": {
     "url": "assets/Model.png"
   },
-  "props": {}
+  "props": {
+    "name": "NPC"
+  }
 }
