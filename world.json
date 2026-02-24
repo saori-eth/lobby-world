@@ -8,7 +8,7 @@
     "customAvatars": false,
     "voice": "spatial",
     "rank": 0,
-    "playerLimit": 0,
+    "playerLimit": 3,
     "ao": true
   },
   "spawn": {
@@ -38,6 +38,29 @@
         0,
         0,
         1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "jDaoaLWMks",
+      "blueprint": "PrimNPC",
+      "position": [
+        -12.583181695166388,
+        0,
+        -3.752015957486766
+      ],
+      "quaternion": [
+        0,
+        0.9396926207859083,
+        0,
+        0.3420201433256688
       ],
       "scale": [
         1,

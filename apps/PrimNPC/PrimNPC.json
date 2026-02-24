@@ -1,0 +1,22 @@
+{
+  "id": "PrimNPC",
+  "uid": "dbc97d22-2118-422b-b67d-61dbe822604d",
+  "name": "PrimNPC",
+  "scope": "PrimNPC",
+  "script": "asset://a54097233d1931d0772dc3a9cc70667e97d3358ede2fe8d45adab42f5fc72b56.js",
+  "createdAt": "2026-02-24T02:27:19.881Z",
+  "preload": false,
+  "public": false,
+  "locked": false,
+  "frozen": false,
+  "unique": false,
+  "disabled": false,
+  "scene": false,
+  "keep": true,
+  "scriptFormat": "module",
+  "model": "assets/Model.glb",
+  "image": {
+    "url": "assets/Model.png"
+  },
+  "props": {}
+}
