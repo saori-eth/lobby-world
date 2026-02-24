@@ -88,6 +88,24 @@ export default (world, app, fetch, props, setTimeout) => {
     pickupAction.active = false
     world.add(sword)
     app.on('update', trackHand)
+    // Sword crosshair reticle
+    world.setReticle({
+      color: '#ccccdd',
+      opacity: 0.85,
+      spread: 0,
+      layers: [
+        // Blade up
+        { shape: 'line', length: 8, gap: 3, angle: 0, thickness: 1.5 },
+        // Blade down
+        { shape: 'line', length: 8, gap: 3, angle: 180, thickness: 1.5 },
+        // Guard left
+        { shape: 'line', length: 5, gap: 2, angle: 90, thickness: 2, color: '#8B7333' },
+        // Guard right
+        { shape: 'line', length: 5, gap: 2, angle: 270, thickness: 2, color: '#8B7333' },
+        // Pommel
+        { shape: 'dot', radius: 1.5, color: '#8B7333' },
+      ],
+    })
   }
   app.add(pickupAction)
 
@@ -102,10 +120,37 @@ export default (world, app, fetch, props, setTimeout) => {
     sword.quaternion.identity()
     app.add(sword)
     pickupAction.active = true
+    world.setReticle(null)
   }
 
   // Left click to attack
   let attacking = false
+  let reticleSpread = 0
+
+  function setSpread(value) {
+    reticleSpread = value
+    world.setReticle({
+      color: '#ccccdd',
+      opacity: 0.85,
+      spread: reticleSpread,
+      layers: [
+        { shape: 'line', length: 5, gap: 3, angle: 0, thickness: 1.5 },
+        { shape: 'line', length: 5, gap: 3, angle: 180, thickness: 1.5 },
+        { shape: 'line', length: 5, gap: 2, angle: 90, thickness: 2, color: '#8B7333' },
+        { shape: 'line', length: 5, gap: 2, angle: 270, thickness: 2, color: '#8B7333' },
+        { shape: 'dot', radius: 1.5, color: '#8B7333' },
+      ],
+    })
+  }
+
+  const spreadDecay = (delta) => {
+    reticleSpread = Math.max(0, reticleSpread - 30 * delta)
+    setSpread(reticleSpread)
+    if (reticleSpread <= 0) {
+      app.off('update', spreadDecay)
+    }
+  }
+
   control.mouseLeft.onPress = () => {
     if (!held || attacking) return
     const emoteUrl = props.attackEmote?.url
@@ -116,6 +161,9 @@ export default (world, app, fetch, props, setTimeout) => {
     app.send('attack', { position: pos })
     // Also emit locally so NPC clients can predict the hit instantly
     app.emit('sword-attack', { position: pos })
+    // Spread kick on swing
+    setSpread(16)
+    app.on('update', spreadDecay)
     world.getPlayer().applyEffect({
       emote: emoteUrl,
       duration: 1,
