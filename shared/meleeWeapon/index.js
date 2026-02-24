@@ -36,6 +36,7 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     freeze,
     spreadKick = 16,
     spreadDecayRate = 30,
+    lunge,
   } = attack;
 
   // --- Server: relay attack events to other apps ---
@@ -180,6 +181,17 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     attacking = true;
     swinging = true;
     swingHits.clear();
+
+    if (lunge) {
+      const player = world.getPlayer();
+      const euler = new Euler(0, 0, 0, "YXZ");
+      euler.setFromQuaternion(player.quaternion);
+      euler.x = 0;
+      euler.z = 0;
+      const quat = new Quaternion().setFromEuler(euler);
+      const dir = new Vector3(0, 0, -1).applyQuaternion(quat).normalize();
+      player.push(dir.multiplyScalar(lunge));
+    }
 
     setSpread(spreadKick);
     app.on("update", spreadDecay);
