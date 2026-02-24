@@ -1,0 +1,57 @@
+// Reusable humanoid body builder
+// Default meshes are slim bone-outline prims — a minimal stick-figure silhouette.
+// Apps can override by passing a custom `meshes` callback.
+
+import { createArmature } from "@shared/armature.js";
+import { createAnimator } from "@shared/animator.js";
+
+// Default bone-outline mesh definitions: [width, height, depth, offsetY]
+// Proportions trace each bone segment with thin boxes
+const DEFAULT_MESHES = {
+  chest: { size: [0.28, 0.5, 0.16], offset: [0, 0, 0], physics: "kinematic" },
+  head: { size: [0.22, 0.22, 0.22], offset: [0, 0.2, 0], physics: "kinematic" },
+  upperArm_L: { size: [0.09, 0.28, 0.09], offset: [0, -0.14, 0] },
+  lowerArm_L: { size: [0.07, 0.26, 0.07], offset: [0, -0.13, 0] },
+  hand_L: { size: [0.08, 0.08, 0.04], offset: [0, -0.04, 0] },
+  upperArm_R: { size: [0.09, 0.28, 0.09], offset: [0, -0.14, 0] },
+  lowerArm_R: { size: [0.07, 0.26, 0.07], offset: [0, -0.13, 0] },
+  hand_R: { size: [0.08, 0.08, 0.04], offset: [0, -0.04, 0] },
+  upperLeg_L: { size: [0.1, 0.28, 0.1], offset: [0, -0.14, 0] },
+  lowerLeg_L: { size: [0.09, 0.27, 0.09], offset: [0, -0.135, 0] },
+  foot_L: { size: [0.1, 0.05, 0.16], offset: [0, -0.02, -0.02] },
+  upperLeg_R: { size: [0.1, 0.28, 0.1], offset: [0, -0.14, 0] },
+  lowerLeg_R: { size: [0.09, 0.27, 0.09], offset: [0, -0.135, 0] },
+  foot_R: { size: [0.1, 0.05, 0.16], offset: [0, -0.02, -0.02] },
+};
+
+function attachDefaultMeshes(app, armature, color) {
+  const s = armature.scale;
+  const meshes = {};
+  for (const boneName in DEFAULT_MESHES) {
+    const def = DEFAULT_MESHES[boneName];
+    const mesh = app.create("prim", {
+      type: "box",
+      size: [def.size[0] * s, def.size[1] * s, def.size[2] * s],
+      position: [def.offset[0] * s, def.offset[1] * s, def.offset[2] * s],
+      color,
+      physics: def.physics || null,
+    });
+    armature.bones[boneName].add(mesh);
+    meshes[boneName] = mesh;
+  }
+  return meshes;
+}
+
+export function buildBody(
+  app,
+  { scale = 1, color = "#aaaaaa", meshes: meshFn } = {},
+) {
+  const armature = createArmature(app, { scale });
+  const animator = createAnimator(armature);
+
+  const meshes = meshFn
+    ? meshFn(app, armature)
+    : attachDefaultMeshes(app, armature, color);
+
+  return { root: armature.root, armature, animator, meshes };
+}

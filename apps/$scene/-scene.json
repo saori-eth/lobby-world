@@ -1,10 +1,23 @@
 {
-  "scriptFormat": "module",
-  "image": null,
+  "id": "$scene",
+  "uid": "cc17c0ec-8395-49f5-bca6-19f4ea65a19c",
+  "name": "Scene",
+  "scope": "global",
+  "script": "asset://fce379bcbf454b87aa8d891604f8035a43836f6755cf3fcc844d315d027d854b.js",
   "author": null,
   "url": null,
   "desc": null,
+  "preload": true,
+  "public": false,
+  "locked": false,
+  "frozen": false,
+  "unique": true,
+  "disabled": false,
+  "scene": true,
+  "keep": true,
+  "scriptFormat": "module",
   "model": "assets/Model.glb",
+  "image": null,
   "props": {
     "hour": 4,
     "period": "pm",
@@ -21,13 +34,5 @@
     "fogNear": 450,
     "fogFar": 1000,
     "fogColor": "#97b4d3"
-  },
-  "preload": true,
-  "public": false,
-  "locked": false,
-  "frozen": false,
-  "unique": true,
-  "keep": true,
-  "scene": true,
-  "disabled": false
+  }
 }

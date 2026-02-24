@@ -1,7 +1,8 @@
-import { buildBody, createAnimator } from "./buildBody.js";
+import { buildNPC } from "./buildBody.js";
 import { spawnBlood } from "@shared/bloodSpatter.js";
 import { createHealthBar } from "@shared/healthBar.js";
-import { createDeathFall } from "@shared/deathFall.js";
+import { createBoneExplosion } from "@shared/boneExplosion.js";
+import { spawnExplosion } from "@shared/explosion.js";
 
 export default (world, app, fetch, props, setTimeout) => {
   app.configure([{ key: "name", type: "text", label: "Name", initial: "NPC" }]);
@@ -18,7 +19,7 @@ export default (world, app, fetch, props, setTimeout) => {
 
   // --- Server logic ---
   if (world.isServer) {
-    const RESPAWN_TIME = 3;
+    const RESPAWN_TIME = 20;
 
     const state = app.state;
     state.name = app.config.name || "NPC";
@@ -157,7 +158,7 @@ export default (world, app, fetch, props, setTimeout) => {
     }
 
     function init(state) {
-      const { root, bodyPivot, ...parts } = buildBody(app);
+      const { root, armature, animator, meshes } = buildNPC(app);
       root.position.set(state.px, state.py, state.pz);
       root.rotation.y = state.ry;
 
@@ -173,7 +174,6 @@ export default (world, app, fetch, props, setTimeout) => {
       const healthBar = createHealthBar(app, root, { hp: currentHp, maxHp });
 
       // --- Animator + interpolation ---
-      const animator = createAnimator(parts);
       animator.setEmote(state.e);
       let isDead = false;
 
@@ -192,8 +192,8 @@ export default (world, app, fetch, props, setTimeout) => {
         animator.update(delta);
       });
 
-      // --- Death fall-over animation ---
-      const deathFall = createDeathFall(app, bodyPivot);
+      // --- Bone explosion on death ---
+      const boneExplosion = createBoneExplosion(app, world);
 
       // --- Client-side hit prediction ---
       const hitPos = new Vector3();
@@ -221,14 +221,14 @@ export default (world, app, fetch, props, setTimeout) => {
       app.on("die", () => {
         isDead = true;
         predictedHp = 0;
-        healthBar.ui.active = false;
-        nametag.active = false;
-        animator.setEmote(2);
-        deathFall.start();
+        spawnExplosion(app, world, root.position, setTimeout);
+        boneExplosion.explode(root.position, meshes);
+        root.active = false;
       });
 
       app.on("respawn", (data) => {
-        deathFall.reset();
+        boneExplosion.reset(armature, meshes);
+        root.active = true;
         isDead = false;
         predictedHp = data.hp;
         root.position.set(data.px, data.py, data.pz);
