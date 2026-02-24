@@ -1,7 +1,8 @@
 import { buildBody } from "./buildBody.js";
 import { createBoneExplosion } from "./boneExplosion.js";
 import { spawnBlood } from "../bloodSpatter.js";
-import { createHealthBar } from "../healthBar.js";
+import { createHealthBar } from "../ui/healthBar.js";
+import { createCombatText } from "../ui/combatText.js";
 import { spawnExplosion } from "../explosion.js";
 import { createRaidBridge } from "../gametype/raid.js";
 
@@ -328,6 +329,10 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         predictedHp = Math.max(0, predictedHp - damage);
         healthBar.update(predictedHp, maxHp);
         spawnBlood(app, world, root.position, setTimeout);
+        createCombatText(app, world, {
+          position: [root.position.x, root.position.y + 2, root.position.z],
+          value: damage,
+        });
       });
 
       // --- Server reconciliation ---
