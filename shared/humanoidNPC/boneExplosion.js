@@ -79,6 +79,8 @@ export function createBoneExplosion(app, world) {
         rx: mesh.rotation.x,
         ry: mesh.rotation.y,
         rz: mesh.rotation.z,
+        tag: mesh.tag,
+        physics: mesh.physics,
       });
 
       // Get world position from matrixWorld
@@ -94,8 +96,9 @@ export function createBoneExplosion(app, world) {
       // Remove from bone parent
       if (parent) parent.remove(mesh);
 
-      // Remove physics to avoid collider issues
+      // Remove physics and tag to avoid ghost colliders triggering hits
       mesh.physics = null;
+      mesh.tag = null;
 
       // Place in debris group at local offset
       mesh.position.set(lx, ly, lz);
@@ -136,6 +139,8 @@ export function createBoneExplosion(app, world) {
       if (debris) debris.remove(orig.mesh);
       orig.mesh.position.set(orig.px, orig.py, orig.pz);
       orig.mesh.rotation.set(orig.rx, orig.ry, orig.rz);
+      orig.mesh.tag = orig.tag;
+      orig.mesh.physics = orig.physics;
       orig.parent.add(orig.mesh);
     }
 

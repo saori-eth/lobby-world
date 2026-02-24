@@ -37,12 +37,16 @@ function createPrim(app, def, s, fallbackColor) {
   return app.create("prim", opts);
 }
 
-function attachMeshes(app, armature, meshDefs, fallbackColor) {
+function attachMeshes(app, armature, meshDefs, fallbackColor, npcId) {
   const s = armature.scale;
   const meshes = {};
   for (const boneName in meshDefs) {
     const def = meshDefs[boneName];
     const mesh = createPrim(app, def, s, fallbackColor);
+    if (npcId) {
+      mesh.tag = `npc:${npcId}`;
+      if (!mesh.physics) mesh.physics = "kinematic";
+    }
     armature.bones[boneName].add(mesh);
     meshes[boneName] = mesh;
     if (def.children) {
@@ -57,7 +61,7 @@ function attachMeshes(app, armature, meshDefs, fallbackColor) {
 
 export function buildBody(
   app,
-  { scale = 1, color = "#aaaaaa", meshes: meshOption } = {},
+  { scale = 1, color = "#aaaaaa", meshes: meshOption, npcId } = {},
 ) {
   const armature = createArmature(app, { scale });
   const animator = createAnimator(armature);
@@ -66,7 +70,13 @@ export function buildBody(
   if (typeof meshOption === "function") {
     meshes = meshOption(app, armature);
   } else {
-    meshes = attachMeshes(app, armature, meshOption || DEFAULT_MESHES, color);
+    meshes = attachMeshes(
+      app,
+      armature,
+      meshOption || DEFAULT_MESHES,
+      color,
+      npcId,
+    );
   }
 
   return { root: armature.root, armature, animator, meshes };

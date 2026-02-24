@@ -21,6 +21,7 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     bone = "rightHand",
     offsetRotation = [-90, 0, 0],
     offsetPosition = [0.1, 0, 0],
+    hitbox: hitboxConfig = { radius: 0.15, offsetY: 0.7 },
   } = options;
 
   const {
@@ -47,6 +48,10 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
 
   // --- Client ---
 
+  // Swing state for trigger-based hit detection
+  let swinging = false;
+  const swingHits = new Set();
+
   const weapons = new Map();
   const offsetQuat = new Quaternion().setFromEuler(
     new Euler(
@@ -64,6 +69,34 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
   function addPlayer(player) {
     if (weapons.has(player.id)) return;
     const weapon = buildWeapon(app);
+
+    // Add trigger hitbox sphere to weapon for collision-based hit detection
+    const isLocal = player.id === world.getPlayer()?.id;
+    if (isLocal) {
+      const hitSphere = app.create("prim", {
+        type: "sphere",
+        size: [hitboxConfig.radius],
+        position: [0, hitboxConfig.offsetY, 0],
+        opacity: 0,
+        physics: "kinematic",
+        trigger: true,
+        tag: "weapon-hitbox",
+        onTriggerEnter: (other) => {
+          if (!swinging) return;
+          const tag = other.tag;
+          if (!tag || !tag.startsWith("npc:")) return;
+          const npcAppId = tag.split(":")[1];
+          if (swingHits.has(npcAppId)) return;
+          swingHits.add(npcAppId);
+
+          const localPlayer = world.getPlayer();
+          app.send(networkEvent, { npcAppId, playerId: localPlayer.id });
+          app.emit(eventName, { npcAppId, playerId: localPlayer.id });
+        },
+      });
+      weapon.add(hitSphere);
+    }
+
     world.add(weapon);
     weapons.set(player.id, {
       weapon,
@@ -145,27 +178,13 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     const emoteUrl = props[emoteKey]?.url;
     if (!emoteUrl) return;
     attacking = true;
-
-    const localPlayer = world.getPlayer();
-    const localEntry = weapons.get(localPlayer.id);
-    const pos = localEntry
-      ? [
-          localEntry.weapon.position.x,
-          localEntry.weapon.position.y,
-          localEntry.weapon.position.z,
-        ]
-      : [
-          localPlayer.position.x,
-          localPlayer.position.y,
-          localPlayer.position.z,
-        ];
-
-    app.send(networkEvent, { position: pos, playerId: localPlayer.id });
-    app.emit(eventName, { position: pos, playerId: localPlayer.id });
+    swinging = true;
+    swingHits.clear();
 
     setSpread(spreadKick);
     app.on("update", spreadDecay);
 
+    const localPlayer = world.getPlayer();
     const effect = {
       emote: emoteUrl,
       duration,
@@ -173,6 +192,7 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
       turn,
       onEnd: () => {
         attacking = false;
+        swinging = false;
       },
     };
     if (snare !== undefined) effect.snare = snare;

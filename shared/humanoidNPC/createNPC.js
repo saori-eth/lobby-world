@@ -15,7 +15,6 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     hp = 100,
     maxHp = 100,
     respawnTime = 20,
-    attackRange = 2,
     damage = 25,
     maxDistance = 10,
     sendRate = 0.33,
@@ -36,6 +35,7 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
   // --- Server logic ---
   if (world.isServer) {
     const state = app.state;
+    state.instanceId = uuid();
     state.name = name;
     state.hp = hp;
     state.maxHp = maxHp;
@@ -45,7 +45,6 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     world.add(ctrl);
 
     const v1 = new Vector3();
-    const attackPos = new Vector3();
     let lastSend = 0;
     let dead = false;
     const customEmoteIndices = [2, 3, 4]; // idle, wave, dance
@@ -151,7 +150,11 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
         // Attack
         state.e = 5; // attack emote
         if (attackTimer <= 0) {
-          app.emit(NPC_ATTACK_PLAYER, { npcId: app.id, targetPlayerId: target.id, damage: attackDamage });
+          app.emit(NPC_ATTACK_PLAYER, {
+            npcId: app.id,
+            targetPlayerId: target.id,
+            damage: attackDamage,
+          });
           attackTimer = attackCooldown;
           app.send("npc-attack", {});
         }
@@ -198,18 +201,21 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       }
     });
 
-    // Listen for damage events
+    // Listen for damage events (matched by npcAppId from trigger-based hits)
     world.on(NPC_DAMAGE, (data) => {
       if (dead) return;
-      attackPos.set(data.position[0], data.position[1], data.position[2]);
-      const dist = attackPos.distanceTo(ctrl.position);
-      if (dist > attackRange) return;
+      if (data.npcAppId !== state.instanceId) return;
 
       state.hp = Math.max(0, state.hp - damage);
       app.send("hp", { hp: state.hp, max: state.maxHp });
 
       const isDead = state.hp <= 0;
-      app.emit(NPC_HIT, { npcId: app.id, attackerId: data.playerId, damage, dead: isDead });
+      app.emit(NPC_HIT, {
+        npcId: app.id,
+        attackerId: data.playerId,
+        damage,
+        dead: isDead,
+      });
 
       if (isDead) {
         dead = true;
@@ -258,7 +264,8 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
     }
 
     function init(state) {
-      const buildOpts = { scale };
+      const instanceId = state.instanceId;
+      const buildOpts = { scale, npcId: instanceId };
       if (meshesOption) buildOpts.meshes = meshesOption;
       const { root, armature, animator, meshes } = buildBody(app, buildOpts);
       root.position.set(state.px, state.py, state.pz);
@@ -312,16 +319,12 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
       // --- Bone explosion on death ---
       const boneExplosion = createBoneExplosion(app, world);
 
-      // --- Client-side hit prediction ---
-      const hitPos = new Vector3();
-      const npcPos = new Vector3();
+      // --- Client-side hit prediction (matched by npcAppId from trigger) ---
       let predictedHp = currentHp;
 
       world.on(WEAPON_ATTACK, (data) => {
         if (isDead) return;
-        hitPos.set(data.position[0], data.position[1], data.position[2]);
-        npcPos.copy(root.position);
-        if (hitPos.distanceTo(npcPos) > attackRange) return;
+        if (data.npcAppId !== instanceId) return;
 
         // Optimistic prediction
         predictedHp = Math.max(0, predictedHp - damage);
@@ -331,15 +334,30 @@ export function createNPC(world, app, props, setTimeout, options = {}) {
           position: [root.position.x, root.position.y + 2, root.position.z],
           value: damage,
         });
+
+        // Predict death instantly
+        if (predictedHp <= 0) {
+          isDead = true;
+          spawnExplosion(app, world, root.position, setTimeout);
+          boneExplosion.explode(root.position, meshes);
+          root.active = false;
+        }
       });
 
       // --- Server reconciliation ---
       app.on("hp", ({ hp: newHp, max }) => {
         predictedHp = newHp;
         healthBar.update(newHp, max);
+        // Server says still alive — undo predicted death
+        if (newHp > 0 && isDead) {
+          boneExplosion.reset(armature, meshes);
+          root.active = true;
+          isDead = false;
+        }
       });
 
       app.on("die", () => {
+        if (isDead) return; // already predicted
         isDead = true;
         predictedHp = 0;
         spawnExplosion(app, world, root.position, setTimeout);
