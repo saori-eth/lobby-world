@@ -19,6 +19,8 @@ export default (world, app, fetch, props, setTimeout) => {
     return;
   }
 
+  // --- Client ---
+
   function buildSword() {
     const sword = app.create("group");
 
@@ -66,79 +68,89 @@ export default (world, app, fetch, props, setTimeout) => {
     return sword;
   }
 
-  const sword = buildSword();
-  sword.position.set(0, 0, 0);
-  app.add(sword);
-
-  let held = false;
-  const handPos = new Vector3();
-  const handQuat = new Quaternion();
-  const handOffset = new Vector3();
-  // Offset so blade points forward/up from the hand
+  // Track a sword per player
+  const swords = new Map();
   const offsetQuat = new Quaternion().setFromEuler(
     new Euler(-90 * DEG2RAD, 0, 0),
   );
 
-  const pickupAction = app.create("action", {
-    label: "Pick Up",
-    position: [0, 0.4, 0],
-  });
-  pickupAction.onTrigger = () => {
-    held = true;
-    app.remove(sword);
-    pickupAction.active = false;
+  function addPlayer(player) {
+    if (swords.has(player.id)) return;
+    const sword = buildSword();
     world.add(sword);
-    app.on("update", trackHand);
-    // Sword crosshair reticle
-    world.setReticle({
-      color: "#ccccdd",
-      opacity: 0.85,
-      spread: 0,
-      layers: [
-        // Blade up
-        { shape: "line", length: 5, gap: 3, angle: 0, thickness: 1.5 },
-        // Blade down
-        { shape: "line", length: 5, gap: 3, angle: 180, thickness: 1.5 },
-        // Guard left
-        {
-          shape: "line",
-          length: 5,
-          gap: 2,
-          angle: 90,
-          thickness: 2,
-          color: "#8B7333",
-        },
-        // Guard right
-        {
-          shape: "line",
-          length: 5,
-          gap: 2,
-          angle: 270,
-          thickness: 2,
-          color: "#8B7333",
-        },
-        // Pommel
-        { shape: "dot", radius: 1.5, color: "#8B7333" },
-      ],
+    swords.set(player.id, {
+      sword,
+      pos: new Vector3(),
+      quat: new Quaternion(),
+      offset: new Vector3(),
     });
-  };
-  app.add(pickupAction);
+  }
 
-  // Bind X key to drop
+  function removePlayer(player) {
+    const entry = swords.get(player.id);
+    if (entry) {
+      world.remove(entry.sword);
+      swords.delete(player.id);
+    }
+  }
+
+  // Init swords for all current players
+  for (const player of world.getPlayers()) {
+    addPlayer(player);
+  }
+  world.on("enter", addPlayer);
+  world.on("leave", removePlayer);
+
+  // Set reticle immediately (always equipped)
+  const reticleConfig = {
+    color: "#ccccdd",
+    opacity: 0.85,
+    spread: 0,
+    layers: [
+      { shape: "line", length: 5, gap: 3, angle: 0, thickness: 1.5 },
+      { shape: "line", length: 5, gap: 3, angle: 180, thickness: 1.5 },
+      {
+        shape: "line",
+        length: 5,
+        gap: 2,
+        angle: 90,
+        thickness: 2,
+        color: "#8B7333",
+      },
+      {
+        shape: "line",
+        length: 5,
+        gap: 2,
+        angle: 270,
+        thickness: 2,
+        color: "#8B7333",
+      },
+      { shape: "dot", radius: 1.5, color: "#8B7333" },
+    ],
+  };
+  world.setReticle(reticleConfig);
+
+  // Update all swords to track each player's right hand
+  app.on("update", (delta) => {
+    for (const player of world.getPlayers()) {
+      const entry = swords.get(player.id);
+      if (!entry) {
+        addPlayer(player);
+        continue;
+      }
+      const matrix = player.getBoneTransform("rightHand");
+      if (!matrix) continue;
+      entry.pos.setFromMatrixPosition(matrix);
+      entry.quat.setFromRotationMatrix(matrix);
+      entry.offset.set(0.1, 0, 0).applyQuaternion(entry.quat);
+      entry.pos.add(entry.offset);
+      entry.sword.position.copy(entry.pos);
+      entry.sword.quaternion.copy(entry.quat).multiply(offsetQuat);
+    }
+  });
+
+  // Attack (local player only)
   const control = app.control();
-  control.keyX.onPress = () => {
-    if (!held) return;
-    held = false;
-    app.off("update", trackHand);
-    world.remove(sword);
-    sword.position.set(0, 0, 0);
-    sword.quaternion.identity();
-    app.add(sword);
-    pickupAction.active = true;
-    world.setReticle(null);
-  };
-
-  // Left click to attack
   let attacking = false;
   let reticleSpread = 0;
 
@@ -148,27 +160,7 @@ export default (world, app, fetch, props, setTimeout) => {
       color: "#ccccdd",
       opacity: 0.85,
       spread: reticleSpread,
-      layers: [
-        { shape: "line", length: 5, gap: 3, angle: 0, thickness: 1.5 },
-        { shape: "line", length: 5, gap: 3, angle: 180, thickness: 1.5 },
-        {
-          shape: "line",
-          length: 5,
-          gap: 2,
-          angle: 90,
-          thickness: 2,
-          color: "#8B7333",
-        },
-        {
-          shape: "line",
-          length: 5,
-          gap: 2,
-          angle: 270,
-          thickness: 2,
-          color: "#8B7333",
-        },
-        { shape: "dot", radius: 1.5, color: "#8B7333" },
-      ],
+      layers: reticleConfig.layers,
     });
   }
 
@@ -181,19 +173,30 @@ export default (world, app, fetch, props, setTimeout) => {
   };
 
   control.mouseLeft.onPress = () => {
-    if (!held || attacking) return;
+    if (attacking) return;
     const emoteUrl = props.attackEmote?.url;
     if (!emoteUrl) return;
     attacking = true;
-    // Send attack position to server for authoritative damage
-    const pos = [sword.position.x, sword.position.y, sword.position.z];
+    // Get local player's sword position for attack
+    const localPlayer = world.getPlayer();
+    const localEntry = swords.get(localPlayer.id);
+    const pos = localEntry
+      ? [
+          localEntry.sword.position.x,
+          localEntry.sword.position.y,
+          localEntry.sword.position.z,
+        ]
+      : [
+          localPlayer.position.x,
+          localPlayer.position.y,
+          localPlayer.position.z,
+        ];
     app.send("attack", { position: pos });
-    // Also emit locally so NPC clients can predict the hit instantly
     app.emit("sword-attack", { position: pos });
     // Spread kick on swing
     setSpread(16);
     app.on("update", spreadDecay);
-    world.getPlayer().applyEffect({
+    localPlayer.applyEffect({
       emote: emoteUrl,
       duration: 1,
       cancellable: false,
@@ -203,17 +206,4 @@ export default (world, app, fetch, props, setTimeout) => {
       },
     });
   };
-
-  function trackHand(delta) {
-    const player = world.getPlayer();
-    const matrix = player.getBoneTransform("rightHand");
-    if (!matrix) return;
-    handPos.setFromMatrixPosition(matrix);
-    handQuat.setFromRotationMatrix(matrix);
-    // Shift from wrist to palm along the hand's local Z axis (finger direction)
-    handOffset.set(0.1, 0, 0).applyQuaternion(handQuat);
-    handPos.add(handOffset);
-    sword.position.copy(handPos);
-    sword.quaternion.copy(handQuat).multiply(offsetQuat);
-  }
 };

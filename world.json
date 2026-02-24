@@ -109,6 +109,397 @@
         "e": 0,
         "ready": true
       }
+    },
+    {
+      "id": "k2dXisDjxM",
+      "blueprint": "PrimNPC",
+      "position": [
+        -32.77219802666835,
+        0.25,
+        3.1265777612048042
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "KUxv3HAnEY",
+      "blueprint": "PrimNPC",
+      "position": [
+        -25.973827734174733,
+        0.9406173265833317,
+        2.5002276913888495
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "KyHwuatu0M",
+      "blueprint": "PrimNPC",
+      "position": [
+        -24.80958127993829,
+        1.050619422269688,
+        1.5279130577251794
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "Trx13gTiII",
+      "blueprint": "PrimNPC",
+      "position": [
+        -22.106069296752494,
+        0.9791229207780445,
+        0.2039585850776363
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "3bXPkR7gxY",
+      "blueprint": "PrimNPC",
+      "position": [
+        -22.05294040030192,
+        0.9879618580943539,
+        0.08567091887731898
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "nfX4MOxCA6",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.506986079117066,
+        1.1933705828373653,
+        8.610968556694058
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "xlyJubgmQs",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.4794891235254,
+        0.948778375297563,
+        8.44735473525234
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "1blsvH3ggP",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.540248863663503,
+        0.6702261278058945,
+        8.37429154665012
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "pYEpogOy9N",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.484764971606648,
+        0.7197123223805568,
+        8.373888642883495
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "j1RuuDz3wS",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.300248863663505,
+        0.7618503204602393,
+        8.407252131012038
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "I7LauWmMVB",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.695286223445127,
+        0.5011635987089617,
+        8.290612887615199
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "F6aGlLpIAk",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.63785145228767,
+        0.443838634211702,
+        8.282540956935788
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "zN6116Oone",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.636647957832412,
+        0.44263716522303503,
+        8.282371816820488
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "RzvCJx5YHB",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.259626101516144,
+        0.4794671024382699,
+        8.35273821171916
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "iLKGDl18qf",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.1855820283393,
+        0.48670737020389654,
+        8.366559746443674
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "jYEVvixbJ2",
+      "blueprint": "PrimNPC",
+      "position": [
+        -29.019626101516145,
+        0.5029369397477867,
+        8.397538685452567
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
+    },
+    {
+      "id": "0EubluJ7Yk",
+      "blueprint": "PrimNPC",
+      "position": [
+        -21.012478727857783,
+        0.03,
+        10.490157151826589
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "pinned": false,
+      "props": {},
+      "state": {}
     }
   ]
 }

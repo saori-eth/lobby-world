@@ -177,7 +177,7 @@ export default (world, app, fetch, props, setTimeout) => {
       animator.setEmote(state.e);
       let isDead = false;
 
-      const position = new BufferedLerpVector3(root.position, SEND_RATE * 1.2);
+      let position = new BufferedLerpVector3(root.position, SEND_RATE * 1.2);
 
       app.on("change", ([px, py, pz, ry, e]) => {
         if (isDead) return;
@@ -233,7 +233,7 @@ export default (world, app, fetch, props, setTimeout) => {
         predictedHp = data.hp;
         root.position.set(data.px, data.py, data.pz);
         root.rotation.y = data.ry;
-        position.push([data.px, data.py, data.pz]);
+        position = new BufferedLerpVector3(root.position, SEND_RATE * 1.2);
         animator.setEmote(data.e);
         nametag.active = true;
         healthBar.update(data.hp, data.max);
