@@ -4,7 +4,8 @@ import { spawnBlood } from "../bloodSpatter.js";
 import { createHealthBar } from "../ui/healthBar.js";
 import { createCombatText } from "../ui/combatText.js";
 import { spawnExplosion } from "../explosion.js";
-import { WEAPON_ATTACK, NPC_DAMAGE, NPC_HIT, NPC_ATTACK_PLAYER } from "../gametype/raidEvents.js";
+import { WEAPON_ATTACK } from "../meleeWeapon/events.js";
+import { NPC_DAMAGE, NPC_HIT, NPC_ATTACK_PLAYER } from "./events.js";
 
 export function createNPC(world, app, props, setTimeout, options = {}) {
   const {

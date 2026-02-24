@@ -1,5 +1,7 @@
 import { createPlayerHUD } from "@shared/ui/playerHUD.js";
-import { WEAPON_ATTACK, NPC_DAMAGE, NPC_HIT, NPC_ATTACK_PLAYER, RAID_PLAYER_DAMAGED, RAID_PLAYER_DIED } from "./raidEvents.js";
+import { WEAPON_ATTACK } from "../meleeWeapon/events.js";
+import { NPC_DAMAGE, NPC_HIT, NPC_ATTACK_PLAYER } from "../humanoidNPC/events.js";
+import { RAID_PLAYER_DAMAGED, RAID_PLAYER_DIED } from "./raidEvents.js";
 
 /**
  * Raid gametype — app logic for brokering NPC↔player damage and tracking stats.

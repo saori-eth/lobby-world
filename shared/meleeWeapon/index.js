@@ -1,4 +1,4 @@
-import { WEAPON_ATTACK } from "../gametype/raidEvents.js";
+import { WEAPON_ATTACK } from "./events.js";
 
 /**
  * Shared melee weapon factory.
