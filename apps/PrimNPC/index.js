@@ -13,6 +13,37 @@ export default (world, app, fetch, props, setTimeout) => {
   app.configure([
     { key: "name", type: "text", label: "Name", initial: "NPC" },
     { key: "aggro", type: "switch", label: "Aggro", initial: true },
+    { key: "emissiveColor", type: "color", label: "Neon Color", initial: "#00e5ff" },
+    {
+      key: "emissiveIntensity",
+      type: "number",
+      label: "Weapon Glow",
+      dp: 2,
+      min: 0,
+      max: 20,
+      step: 0.1,
+      initial: 2.8,
+    },
+    {
+      key: "eyeEmissiveIntensity",
+      type: "number",
+      label: "Eye Glow",
+      dp: 2,
+      min: 0,
+      max: 20,
+      step: 0.1,
+      initial: 4.5,
+    },
+    {
+      key: "trimEmissiveIntensity",
+      type: "number",
+      label: "Trim Glow",
+      dp: 2,
+      min: 0,
+      max: 20,
+      step: 0.1,
+      initial: 1.8,
+    },
   ]);
 
   const block = app.get("Block");
@@ -20,7 +51,12 @@ export default (world, app, fetch, props, setTimeout) => {
 
   const seed = hashString(app.instanceId || "default");
   const rng = prng(seed);
-  const meshes = generateStyle(rng);
+  const meshes = generateStyle(rng, {
+    emissiveColor: app.config.emissiveColor,
+    emissiveIntensity: app.config.emissiveIntensity,
+    eyeEmissiveIntensity: app.config.eyeEmissiveIntensity,
+    trimEmissiveIntensity: app.config.trimEmissiveIntensity,
+  });
 
   createNPC(world, app, props, setTimeout, {
     meshes,

@@ -1,9 +1,10 @@
 {
   "id": "$scene",
-  "uid": "cc17c0ec-8395-49f5-bca6-19f4ea65a19c",
+  "uid": "62893fb3-732c-4443-ad78-b19d565557de",
   "name": "Scene",
   "scope": "global",
-  "script": "asset://fce379bcbf454b87aa8d891604f8035a43836f6755cf3fcc844d315d027d854b.js",
+  "script": "asset://126d3fb20f10c84c8913b777f6af063c0ebb0df6c6919292afc6f4e798846762.js",
+  "createdAt": "2026-02-24T00:45:08.879Z",
   "author": null,
   "url": null,
   "desc": null,

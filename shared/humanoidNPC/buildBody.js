@@ -34,6 +34,11 @@ function createPrim(app, def, s, fallbackColor) {
     physics: def.physics || null,
   };
   if (def.rotation) opts.rotation = def.rotation;
+  if (def.opacity !== undefined) opts.opacity = def.opacity;
+  if (def.emissive) opts.emissive = def.emissive;
+  if (def.emissiveIntensity !== undefined) {
+    opts.emissiveIntensity = def.emissiveIntensity;
+  }
   return app.create("prim", opts);
 }
 

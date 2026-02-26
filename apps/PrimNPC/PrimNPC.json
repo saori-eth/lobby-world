@@ -1,9 +1,9 @@
 {
   "id": "PrimNPC",
-  "uid": "147f7c18-76ce-4ae7-9def-84133901b17c",
+  "uid": "21bb2d79-2ac3-47d2-af2e-187bb52123d7",
   "name": "PrimNPC",
   "scope": "PrimNPC",
-  "script": "asset://14fddd5feac32e488e20b094e347d5edcbb513ea8223dfbccb0894035b6d3259.js",
+  "script": "asset://f53320488812bbdc3c758e3af7ff8c8a770a8fdb69742ea261fb1d5e6d7acaf3.js",
   "createdAt": "2026-02-24T02:27:19.881Z",
   "preload": false,
   "public": false,
@@ -12,7 +12,7 @@
   "unique": false,
   "disabled": false,
   "scene": false,
-  "keep": true,
+  "keep": false,
   "scriptFormat": "module",
   "model": "assets/Model.glb",
   "image": {
@@ -20,6 +20,10 @@
   },
   "props": {
     "name": "NPC",
-    "aggro": true
+    "aggro": true,
+    "emissiveColor": "#00e5ff",
+    "emissiveIntensity": 2.8,
+    "eyeEmissiveIntensity": 4.5,
+    "trimEmissiveIntensity": 1.8
   }
 }

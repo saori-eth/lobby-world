@@ -1,0 +1,22 @@
+{
+  "id": "mceT23qNCz",
+  "uid": "9a324fb6-20db-4b43-908c-b402e2b13556",
+  "name": "GoKart",
+  "scope": "Kart",
+  "script": "asset://398408b5c0cdf7a0b900a39efb0258029103294ccd53caac729c54ad8f5eca52.js",
+  "createdAt": "2026-02-26T04:03:32.798Z",
+  "preload": false,
+  "public": false,
+  "locked": false,
+  "frozen": false,
+  "unique": false,
+  "disabled": false,
+  "scene": false,
+  "keep": false,
+  "scriptFormat": "module",
+  "model": "assets/Model.glb",
+  "image": {
+    "url": "assets/Model.png"
+  },
+  "props": {}
+}

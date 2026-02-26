@@ -169,11 +169,16 @@ export default (world, app, fetch, props, setTimeout) => {
   const SIDEWALK_HEIGHT = 0.25
   const PLOT_PADDING = 1.2
   const NEON_STRIP_HEIGHT = 0.25
+  const ROAD_LINE_THICKNESS = 0.012
+  const ROAD_LINE_Y = 0.03 + ROAD_LINE_THICKNESS / 2 + 0.001
+  const ROAD_LINE_CROSSING_OFFSET = 0.003
+  const DETAIL_SURFACE_OFFSET = 0.04
   const GRID_STEP = ROAD_WIDTH + BLOCK_SIZE
   const ROAD_COUNT = 10
 
   const buildingPalette = ['#0b0f1a', '#121826', '#1a1f33', '#161425', '#1d2338']
   const neonPalette = ['#00e5ff', '#ff2bd6', '#7a5cff']
+  const windowPalette = ['#8fd9ff', '#c2f6ff', '#ffe3a1', '#ffc9f0']
 
   const cityGroup = app.create('group')
   const groundGroup = app.create('group')
@@ -247,8 +252,8 @@ export default (world, app, fetch, props, setTimeout) => {
 
       const xLine = app.create('prim', {
         type: 'box',
-        size: [CITY_SIZE, 0.02, 0.2],
-        position: [0, 0.03, center + side * laneOffset],
+        size: [CITY_SIZE, ROAD_LINE_THICKNESS, 0.2],
+        position: [0, ROAD_LINE_Y, center + side * laneOffset],
         color: '#182030',
         emissive: xLineColor,
         emissiveIntensity: 0.9,
@@ -261,8 +266,8 @@ export default (world, app, fetch, props, setTimeout) => {
 
       const zLine = app.create('prim', {
         type: 'box',
-        size: [0.2, 0.02, CITY_SIZE],
-        position: [center + side * laneOffset, 0.03, 0],
+        size: [0.2, ROAD_LINE_THICKNESS, CITY_SIZE],
+        position: [center + side * laneOffset, ROAD_LINE_Y + ROAD_LINE_CROSSING_OFFSET, 0],
         color: '#182030',
         emissive: zLineColor,
         emissiveIntensity: 0.9,
@@ -336,11 +341,12 @@ export default (world, app, fetch, props, setTimeout) => {
             minCenterZ > maxCenterZ ? (plotMinZ + plotMaxZ) / 2 : randRange(seedX, seedZ, 6, minCenterZ, maxCenterZ)
 
           const colorIndex = Math.floor(randRange(seedX, seedZ, 7, 0, buildingPalette.length))
+          const towerColor = buildingPalette[Math.min(colorIndex, buildingPalette.length - 1)]
           const tower = app.create('prim', {
             type: 'box',
             size: [width, height, depth],
             position: [centerX, SIDEWALK_HEIGHT + height / 2, centerZ],
-            color: buildingPalette[Math.min(colorIndex, buildingPalette.length - 1)],
+            color: towerColor,
             roughness: 0.35,
             metalness: 0.6,
             physics: 'static',
@@ -348,6 +354,115 @@ export default (world, app, fetch, props, setTimeout) => {
             receiveShadow: true,
           })
           buildingGroup.add(tower)
+          addTowerWindows(centerX, centerZ, width, depth, height, seedX, seedZ)
+
+          const towerBaseY = SIDEWALK_HEIGHT
+          const towerTopY = towerBaseY + height
+          let roofBaseY = towerTopY
+
+          if (hash2(seedX, seedZ, 40) > 0.15) {
+            const podiumHeight = randRange(seedX, seedZ, 41, 1.4, Math.min(4.5, Math.max(2.2, height * 0.18)))
+            const desiredPodiumWidth = width + randRange(seedX, seedZ, 42, 0.6, 1.6)
+            const desiredPodiumDepth = depth + randRange(seedX, seedZ, 43, 0.6, 1.6)
+            const maxPodiumWidth = Math.max(width, (Math.min(centerX - plotMinX, plotMaxX - centerX) - 0.2) * 2)
+            const maxPodiumDepth = Math.max(depth, (Math.min(centerZ - plotMinZ, plotMaxZ - centerZ) - 0.2) * 2)
+            const podiumWidth = Math.min(desiredPodiumWidth, maxPodiumWidth)
+            const podiumDepth = Math.min(desiredPodiumDepth, maxPodiumDepth)
+
+            const podium = app.create('prim', {
+              type: 'box',
+              size: [podiumWidth, podiumHeight, podiumDepth],
+              position: [centerX, towerBaseY + podiumHeight / 2, centerZ],
+              color: '#202638',
+              roughness: 0.4,
+              metalness: 0.5,
+              physics: 'static',
+              castShadow: true,
+              receiveShadow: true,
+            })
+            buildingGroup.add(podium)
+          }
+
+          if (height > 24 && hash2(seedX, seedZ, 44) > 0.22) {
+            const tierHeight = randRange(seedX, seedZ, 45, Math.max(3.5, height * 0.1), Math.max(6.5, height * 0.28))
+            const tierScaleX = randRange(seedX, seedZ, 46, 0.58, 0.86)
+            const tierScaleZ = randRange(seedX, seedZ, 47, 0.58, 0.86)
+            const upperTier = app.create('prim', {
+              type: 'box',
+              size: [width * tierScaleX, tierHeight, depth * tierScaleZ],
+              position: [centerX, roofBaseY + tierHeight / 2, centerZ],
+              color: '#232b40',
+              roughness: 0.32,
+              metalness: 0.62,
+              physics: 'static',
+              castShadow: true,
+              receiveShadow: true,
+            })
+            buildingGroup.add(upperTier)
+            roofBaseY += tierHeight
+          }
+
+          if (hash2(seedX, seedZ, 48) > 0.35) {
+            const ribsOnX = hash2(seedX, seedZ, 49) > 0.5
+            const ribHeight = Math.max(6, height - randRange(seedX, seedZ, 50, 2, 8))
+            const ribY = towerBaseY + ribHeight / 2 + 0.8
+            const ribThickness = randRange(seedX, seedZ, 51, 0.12, 0.2)
+            const ribColor = '#2a3550'
+
+            if (ribsOnX) {
+              const xOffset = width / 2 + ribThickness / 2 + DETAIL_SURFACE_OFFSET
+              const ribSize = [ribThickness, ribHeight, Math.max(2, depth - 0.5)]
+
+              const leftRib = app.create('prim', {
+                type: 'box',
+                size: ribSize,
+                position: [centerX - xOffset, ribY, centerZ],
+                color: ribColor,
+                roughness: 0.24,
+                metalness: 0.3,
+                castShadow: false,
+                receiveShadow: false,
+              })
+              const rightRib = app.create('prim', {
+                type: 'box',
+                size: ribSize,
+                position: [centerX + xOffset, ribY, centerZ],
+                color: ribColor,
+                roughness: 0.24,
+                metalness: 0.3,
+                castShadow: false,
+                receiveShadow: false,
+              })
+              decoGroup.add(leftRib)
+              decoGroup.add(rightRib)
+            } else {
+              const zOffset = depth / 2 + ribThickness / 2 + DETAIL_SURFACE_OFFSET
+              const ribSize = [Math.max(2, width - 0.5), ribHeight, ribThickness]
+
+              const frontRib = app.create('prim', {
+                type: 'box',
+                size: ribSize,
+                position: [centerX, ribY, centerZ - zOffset],
+                color: ribColor,
+                roughness: 0.24,
+                metalness: 0.3,
+                castShadow: false,
+                receiveShadow: false,
+              })
+              const backRib = app.create('prim', {
+                type: 'box',
+                size: ribSize,
+                position: [centerX, ribY, centerZ + zOffset],
+                color: ribColor,
+                roughness: 0.24,
+                metalness: 0.3,
+                castShadow: false,
+                receiveShadow: false,
+              })
+              decoGroup.add(frontRib)
+              decoGroup.add(backRib)
+            }
+          }
 
           if (hash2(seedX, seedZ, 8) < 0.3) {
             const capHeight = randRange(seedX, seedZ, 9, 1.5, 4)
@@ -355,7 +470,7 @@ export default (world, app, fetch, props, setTimeout) => {
             const roofCap = app.create('prim', {
               type: 'box',
               size: [width * capScale, capHeight, depth * capScale],
-              position: [centerX, SIDEWALK_HEIGHT + height + capHeight / 2, centerZ],
+              position: [centerX, roofBaseY + capHeight / 2, centerZ],
               color: '#252b3e',
               roughness: 0.3,
               metalness: 0.65,
@@ -382,7 +497,7 @@ export default (world, app, fetch, props, setTimeout) => {
                 : [centerX, bandY, centerZ + side * (depth / 2 + 0.12)],
               color: '#1c1c25',
               emissive: neonColor,
-              emissiveIntensity: randRange(seedX, seedZ, 30 + n, 2.5, 5),
+              emissiveIntensity: randRange(seedX, seedZ, 30 + n, 0.9, 1.8),
               roughness: 0.2,
               metalness: 0.15,
               castShadow: false,
@@ -396,6 +511,141 @@ export default (world, app, fetch, props, setTimeout) => {
   }
 
   app.add(cityGroup)
+
+  function addTowerWindows(centerX, centerZ, width, depth, height, seedX, seedZ) {
+    if (height < 10) return
+
+    const stripCountX = 2 + Math.floor(randRange(seedX, seedZ, 52, 0, 3))
+    const stripCountZ = 2 + Math.floor(randRange(seedX, seedZ, 53, 0, 3))
+    const bottomInset = randRange(seedX, seedZ, 54, 1.2, 2.2)
+    const topInset = randRange(seedX, seedZ, 55, 1.8, 4.6)
+    const stripHeight = Math.max(2, height - bottomInset - topInset)
+    const stripY = SIDEWALK_HEIGHT + bottomInset + stripHeight / 2
+    const stripThickness = 0.08
+    const facadeOffset = DETAIL_SURFACE_OFFSET + stripThickness / 2 + 0.005
+    const litChance = randRange(seedX, seedZ, 56, 0.55, 0.88)
+    const emissiveIntensity = randRange(seedX, seedZ, 57, 0.45, 1.05)
+    const widthMargin = Math.min(0.9, width * 0.2)
+    const depthMargin = Math.min(0.9, depth * 0.2)
+    const stripWidthX = Math.max(0.35, Math.min(1.1, (width - widthMargin * 2) / (stripCountX * 1.5)))
+    const stripWidthZ = Math.max(0.35, Math.min(1.1, (depth - depthMargin * 2) / (stripCountZ * 1.5)))
+
+    const addWindowStrip = (size, position, salt) => {
+      const lit = hash2(seedX, seedZ, salt) < litChance
+      const colorPick = Math.floor(randRange(seedX, seedZ, salt + 1, 0, windowPalette.length))
+      const windowColor = windowPalette[Math.min(colorPick, windowPalette.length - 1)]
+
+      const strip = app.create('prim', {
+        type: 'box',
+        size,
+        position,
+        color: lit ? '#202736' : '#111420',
+        emissive: lit ? windowColor : '#06080d',
+        emissiveIntensity: lit ? emissiveIntensity : 0.02,
+        roughness: lit ? 0.18 : 0.45,
+        metalness: 0.15,
+        castShadow: false,
+        receiveShadow: false,
+      })
+      decoGroup.add(strip)
+    }
+
+    const xSpan = Math.max(0, width - widthMargin * 2)
+    const zSpan = Math.max(0, depth - depthMargin * 2)
+
+    for (let i = 0; i < stripCountX; i++) {
+      const t = stripCountX === 1 ? 0.5 : i / (stripCountX - 1)
+      const x = -xSpan / 2 + xSpan * t
+      addWindowStrip(
+        [stripWidthX, stripHeight, stripThickness],
+        [centerX + x, stripY, centerZ + depth / 2 + facadeOffset],
+        60 + i * 2
+      )
+      addWindowStrip(
+        [stripWidthX, stripHeight, stripThickness],
+        [centerX + x, stripY, centerZ - depth / 2 - facadeOffset],
+        61 + i * 2
+      )
+    }
+
+    for (let i = 0; i < stripCountZ; i++) {
+      const t = stripCountZ === 1 ? 0.5 : i / (stripCountZ - 1)
+      const z = -zSpan / 2 + zSpan * t
+      addWindowStrip(
+        [stripThickness, stripHeight, stripWidthZ],
+        [centerX + width / 2 + facadeOffset, stripY, centerZ + z],
+        120 + i * 2
+      )
+      addWindowStrip(
+        [stripThickness, stripHeight, stripWidthZ],
+        [centerX - width / 2 - facadeOffset, stripY, centerZ + z],
+        121 + i * 2
+      )
+    }
+
+    const bandCount = height > 45 ? 2 : 1
+    for (let i = 0; i < bandCount; i++) {
+      const bandY = SIDEWALK_HEIGHT + height * (0.32 + i * 0.24)
+      if (bandY >= SIDEWALK_HEIGHT + height - 2) continue
+      const colorPick = Math.floor(randRange(seedX, seedZ, 180 + i, 0, windowPalette.length))
+      const bandColor = windowPalette[Math.min(colorPick, windowPalette.length - 1)]
+      const bandIntensity = randRange(seedX, seedZ, 190 + i, 0.35, 0.75)
+
+      const frontBand = app.create('prim', {
+        type: 'box',
+        size: [width + 0.02, 0.18, stripThickness],
+        position: [centerX, bandY, centerZ + depth / 2 + facadeOffset],
+        color: '#1a1f2f',
+        emissive: bandColor,
+        emissiveIntensity: bandIntensity,
+        roughness: 0.2,
+        metalness: 0.15,
+        castShadow: false,
+        receiveShadow: false,
+      })
+      const backBand = app.create('prim', {
+        type: 'box',
+        size: [width + 0.02, 0.18, stripThickness],
+        position: [centerX, bandY, centerZ - depth / 2 - facadeOffset],
+        color: '#1a1f2f',
+        emissive: bandColor,
+        emissiveIntensity: bandIntensity,
+        roughness: 0.2,
+        metalness: 0.15,
+        castShadow: false,
+        receiveShadow: false,
+      })
+      const rightBand = app.create('prim', {
+        type: 'box',
+        size: [stripThickness, 0.18, depth + 0.02],
+        position: [centerX + width / 2 + facadeOffset, bandY, centerZ],
+        color: '#1a1f2f',
+        emissive: bandColor,
+        emissiveIntensity: bandIntensity,
+        roughness: 0.2,
+        metalness: 0.15,
+        castShadow: false,
+        receiveShadow: false,
+      })
+      const leftBand = app.create('prim', {
+        type: 'box',
+        size: [stripThickness, 0.18, depth + 0.02],
+        position: [centerX - width / 2 - facadeOffset, bandY, centerZ],
+        color: '#1a1f2f',
+        emissive: bandColor,
+        emissiveIntensity: bandIntensity,
+        roughness: 0.2,
+        metalness: 0.15,
+        castShadow: false,
+        receiveShadow: false,
+      })
+
+      decoGroup.add(frontBand)
+      decoGroup.add(backBand)
+      decoGroup.add(rightBand)
+      decoGroup.add(leftBand)
+    }
+  }
 
   function calculateSunDirection(verticalDegrees, horizontalDegrees) {
     const verticalRad = verticalDegrees * DEG2RAD

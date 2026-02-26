@@ -155,6 +155,13 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
   const control = app.control();
   let attacking = false;
   let reticleSpread = 0;
+  let attackToken = 0;
+
+  function clearAttackState(token) {
+    if (token !== attackToken) return;
+    attacking = false;
+    swinging = false;
+  }
 
   function setSpread(value) {
     reticleSpread = value;
@@ -176,14 +183,20 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
 
   control[button].onPress = () => {
     if (attacking) return;
+    const localPlayer = world.getPlayer();
+    if (!localPlayer) return;
     const emoteUrl = props[emoteKey]?.url;
-    if (!emoteUrl) return;
     attacking = true;
     swinging = true;
     swingHits.clear();
+    const token = ++attackToken;
+    const fallbackMs = Math.max(0.05, duration) * 1000 + 150;
+    setTimeout(() => {
+      clearAttackState(token);
+    }, fallbackMs);
 
     if (lunge) {
-      const player = world.getPlayer();
+      const player = localPlayer;
       const euler = new Euler(0, 0, 0, "YXZ");
       euler.setFromQuaternion(player.quaternion);
       euler.x = 0;
@@ -196,29 +209,33 @@ export function createMeleeWeapon(world, app, props, setTimeout, options) {
     setSpread(spreadKick);
     app.on("update", spreadDecay);
 
-    const localPlayer = world.getPlayer();
     const effect = {
-      emote: emoteUrl,
       duration,
       cancellable,
       turn,
       onEnd: () => {
-        attacking = false;
-        swinging = false;
+        clearAttackState(token);
       },
     };
+    if (emoteUrl) effect.emote = emoteUrl;
     if (snare !== undefined) effect.snare = snare;
     if (freeze !== undefined) effect.freeze = freeze;
 
-    localPlayer.applyEffect(effect);
+    if (emoteUrl || snare !== undefined || freeze !== undefined) {
+      localPlayer.applyEffect(effect);
+    }
   };
 
   // Cleanup helper
   function destroy() {
+    attackToken += 1;
+    attacking = false;
+    swinging = false;
     app.off("update", onUpdate);
     app.off("update", spreadDecay);
     world.off("enter", addPlayer);
     world.off("leave", removePlayer);
+    control.release();
     for (const entry of weapons.values()) {
       world.remove(entry.weapon);
     }

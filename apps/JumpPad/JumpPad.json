@@ -1,0 +1,30 @@
+{
+  "id": "JumpPad",
+  "uid": "7570e167-bd1e-45a3-93da-24fa4026d485",
+  "name": "JumpPad",
+  "scope": "JumpPad",
+  "script": "asset://7d9eb2716e3975eecf349202751c49bbbd9faaba09fdb4fe2cdeb249ce45a7f8.js",
+  "createdAt": "2026-02-26T03:59:23.472Z",
+  "preload": false,
+  "public": false,
+  "locked": false,
+  "frozen": false,
+  "unique": false,
+  "disabled": false,
+  "scene": false,
+  "keep": true,
+  "scriptFormat": "module",
+  "model": "assets/Model.glb",
+  "image": {
+    "url": "assets/Model.png"
+  },
+  "props": {
+    "jumpForce": 14,
+    "forwardForce": 2,
+    "lockDuration": 0.2,
+    "airSnare": 1,
+    "cooldown": 0.75,
+    "padColor": "#253243",
+    "neonColor": "#35f3ff"
+  }
+}

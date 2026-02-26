@@ -1,9 +1,9 @@
 {
   "id": "Sword",
-  "uid": "47e39f1d-8fb3-499e-b2e3-5373f9c9da3b",
+  "uid": "6e6d49fb-d2af-498f-b3e2-af15e585db4a",
   "name": "Sword",
   "scope": "Sword",
-  "script": "asset://6e1ff89cd4fb4d7bd33da0e2821ee9dc134aeafc61ba9a351ea2fd7f896b080a.js",
+  "script": "asset://fe7793fac9345f21b095b7ae4a589cbb1a042a867e5128356073fa08db0f3245.js",
   "createdAt": "2026-02-24T02:47:24.697Z",
   "preload": false,
   "public": false,

@@ -10,6 +10,8 @@ export default (world, app, fetch, props, setTimeout) => {
     },
   ]);
 
+  console.log("sword");
+
   const block = app.get("Block");
   if (block) block.active = false;
 
